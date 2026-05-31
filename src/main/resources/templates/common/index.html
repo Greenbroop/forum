@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <title>IU Forum - Trang chủ</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="container">
+        <div class="forum-intro">
+            <h1>Chào mừng đến với IU Forum</h1>
+            <p>Nơi trao đổi kiến thức và kinh nghiệm</p>
+        </div>
+
+        <div class="content-box" sec:authorize="isAuthenticated()" style="margin-bottom: 20px;">
+            <a th:href="@{/thread/create}" class="btn-primary">+ Đăng chủ đề mới</a>
+        </div>
+
+        <div class="content-box">
+            <h2>Chủ đề thảo luận</h2>
+
+            <form th:action="@{/}" method="get" style="margin-bottom: 25px; display: flex; gap: 10px;">
+                <input type="text" name="keyword" th:value="${keyword}" class="form-control"
+                    placeholder="Tìm kiếm bài viết theo tiêu đề...">
+                <button type="submit" class="btn-primary">Tìm kiếm</button>
+                <a th:if="${keyword}" th:href="@{/}" class="btn-theme">Hủy lọc</a>
+            </form>
+
+            <div th:if="${#lists.isEmpty(threads)}" class="no-data">
+                <p>Không tìm thấy chủ đề nào phù hợp.</p>
+            </div>
+
+            <div class="thread-card" th:each="thread : ${threads}">
+                <div class="thread-info">
+                    <h3>
+                        <a th:href="@{/thread/{id}(id=${thread.id})}" th:text="${thread.title}">Tiêu đề mẫu</a>
+                    </h3>
+                    <p class="thread-meta">
+                        <span th:if="${thread.category != null}" 
+                              style="background-color: #e0f2fe; color: #0284c7; padding: 3px 8px; border-radius: 12px; font-size: 0.85em; margin-right: 8px; font-weight: bold;" 
+                              th:text="${thread.category.name}">Chuyên mục
+                        </span>
+                        
+                        Đăng bởi: <span th:text="${thread.creator.fullName}" style="font-weight: 500;">Tác giả</span>
+                        • Ngày: <span th:text="${#temporals.format(thread.createdAt, 'dd/MM/yyyy HH:mm')}">Thời gian</span>
+                    </p>
+                </div>
+
+                <div sec:authorize="hasAnyRole('MODERATOR', 'ADMIN')" class="action-zone">
+                    <a th:href="@{/mod/delete-thread/{id}(id=${thread.id})}" class="btn-danger"
+                        onclick="return confirm('Bạn có chắc chắn muốn xóa toàn bộ chủ đề này và các bình luận bên trong?')">Xóa
+                        chủ đề</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/theme.js}"></script>
+</body>
+
+</html>

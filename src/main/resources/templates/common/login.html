@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập - IU Forum</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="container form-container">
+        <div class="auth-box">
+            <h2>Đăng nhập hệ thống</h2>
+
+            <div th:if="${param.error}" class="alert alert-danger"
+                style="color: red; background-color: #fde8e8; padding: 10px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #fbd5d5;">
+                <!-- Trường hợp tài khoản chưa kích hoạt hoặc bị Admin khóa -->
+                <span th:if="${param.error[0] == 'disabled' or param.error[0] == 'locked'}">
+                    Tài khoản của bạn đang bị khóa hoặc chưa được kích hoạt!
+                </span>
+
+                <!-- Trường hợp nhập sai user hoặc password thông thường -->
+                <span th:if="${param.error[0] == 'bad_credentials' or param.error[0] == 'true'}">
+                    Tên đăng nhập hoặc mật khẩu không đúng!
+                </span>
+            </div>
+
+            <div th:if="${param.logout}" class="alert alert-success">
+                Bạn đã đăng xuất thành công.
+            </div>
+
+            <div th:if="${param.success}" class="alert alert-success">
+                Đăng ký thành công! Hãy đăng nhập.
+            </div>
+
+            <!-- Thông báo cần kích hoạt tài khoản -->
+            <div th:if="${param.unverified}" class="alert alert-info">
+                Vui lòng kiểm tra hộp thư (Console) để kích hoạt tài khoản!
+            </div>
+
+            <!-- Thông báo kích hoạt thành công -->
+            <div th:if="${param.verified}" class="alert alert-success">
+                Tài khoản đã được kích hoạt thành công! Bạn có thể đăng nhập.
+            </div>
+
+            <form th:action="@{/login}" method="post">
+                <div class="form-group">
+                    <label for="username">Tên tài khoản:</label>
+                    <input type="text" id="username" name="username" required class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mật khẩu:</label>
+                    <input type="password" id="password" name="password" required class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label style="font-weight: normal;">
+                        <input type="checkbox" name="remember-me">
+                        Ghi nhớ đăng nhập (30 ngày)
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary">Đăng nhập</button>
+            </form>
+
+            <p class="auth-switch">
+                Chưa có tài khoản?
+                <a th:href="@{/register}">Đăng ký ngay</a>
+            </p>
+        </div>
+    </div>
+
+    <script th:src="@{/js/theme.js}"></script>
+</body>
+
+</html>
