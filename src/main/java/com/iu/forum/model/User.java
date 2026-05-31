@@ -30,7 +30,6 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @NotBlank(message = "Họ và tên không được để trống")
     @Size(max = 100, message = "Họ và tên không được vượt quá 100 ký tự")
     @Column(nullable = false, length = 100)
     private String fullName;
