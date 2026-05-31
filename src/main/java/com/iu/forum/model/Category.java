@@ -38,6 +38,7 @@ public class Category {
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted = false; // Tính năng xóa mềm cho chuyên mục
 
+
     // Mối quan hệ 1-N: 1 Chuyên mục có chứa nhiều Bài viết
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Thread> threads;

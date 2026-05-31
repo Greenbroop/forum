@@ -11,13 +11,41 @@
     <div class="container">
         <div class="content-box">
             <h1>Đăng chủ đề thảo luận mới</h1>
-            <form th:action="@{/thread/create}" method="post">
-                <div class="form-group">
-                    <label>Tiêu đề chủ đề:</label>
-                    <input type="text" name="title" class="form-control" placeholder="Nhập tiêu đề chủ đề..." required>
+            <form th:action="@{/thread/create}" method="post" style="max-width: 600px;">
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">
+                        Tiêu đề chủ đề <span style="color: red;">*</span>
+                    </label>
+                    <input type="text" name="title" class="form-control" required 
+                           style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc;"
+                           placeholder="Ví dụ: Lỗi 403 Forbidden khi dùng Spring Security...">
                 </div>
-                <button type="submit" class="btn-primary">Đăng bài ngay</button>
-                <a th:href="@{/}" class="btn-theme">Hủy</a>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">
+                        Chuyên mục <span style="color: red;">*</span>
+                    </label>
+                    <select name="categoryId" class="form-control" required
+                            style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc;">
+                        <option value="">-- Chọn chuyên mục phù hợp --</option>
+                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">
+                        Nội dung chi tiết <span style="color: red;">*</span>
+                    </label>
+                    <textarea name="content" class="form-control" rows="6" required
+                              style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc;"
+                              placeholder="Mô tả chi tiết vấn đề hoặc câu hỏi của bạn tại đây..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn-primary" style="padding: 10px 20px;">Đăng bài ngay</button>
+                    <a th:href="@{/}" class="btn-theme" style="padding: 10px 20px; text-decoration: none;">Hủy</a>
+                </div>
             </form>
         </div>
     </div>

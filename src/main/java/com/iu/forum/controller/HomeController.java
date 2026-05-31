@@ -110,27 +110,6 @@ public class HomeController {
         return "common/thread-detail";
     }
 
-    // 1. Hiển thị trang đăng bài
-    @GetMapping("/thread/create")
-    public String showCreateThreadForm(Model model) {
-        model.addAttribute("thread", new com.iu.forum.model.Thread());
-        return "common/create-thread"; 
-    }
-
-    // 2. Xử lý lưu bài viết mới
-    @PostMapping("/thread/create")
-    public String createThread(@RequestParam("title") String title, Principal principal) {
-        if (principal == null)
-            return "redirect:/login";
-
-        User creator = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại"));
-
-        com.iu.forum.model.Thread newThread = new com.iu.forum.model.Thread(title, creator);
-        threadRepository.save(newThread);
-
-        return "redirect:/"; // Quay về trang chủ sau khi đăng thành công
-    }
 
     // Xử lý gửi bình luận (Đã gộp xử lý text và xử lý upload file đính kèm)
     @PostMapping("/thread/{id}/reply")
