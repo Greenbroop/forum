@@ -23,11 +23,20 @@
         <div class="content-box">
             <h2>Chủ đề thảo luận</h2>
 
-            <form th:action="@{/}" method="get" style="margin-bottom: 25px; display: flex; gap: 10px;">
-                <input type="text" name="keyword" th:value="${keyword}" class="form-control"
-                    placeholder="Tìm kiếm bài viết theo tiêu đề...">
-                <button type="submit" class="btn-primary">Tìm kiếm</button>
-                <a th:if="${keyword}" th:href="@{/}" class="btn-theme">Hủy lọc</a>
+            <form th:action="@{/}" method="get" style="margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap;">
+                
+                <select name="searchBy" class="form-control" style="width: auto; padding: 8px; border-radius: 4px; border: 1px solid #ccc; outline: none;">
+                    <option value="title" th:selected="${searchBy == 'title'}">Tìm trong Tiêu đề</option>
+                    <option value="content" th:selected="${searchBy == 'content'}">Tìm trong Nội dung</option>
+                    <option value="author" th:selected="${searchBy == 'author'}">Tìm theo Tên tác giả</option>
+                </select>
+
+                <input type="text" name="keyword" th:value="${keyword}" class="form-control" style="flex-grow: 1; padding: 8px;"
+                    placeholder="Nhập từ khóa cần tìm...">
+                
+                <button type="submit" class="btn-primary" style="padding: 8px 15px;">Tìm kiếm</button>
+                <a th:if="${keyword}" th:href="@{/}" class="btn-theme" style="padding: 8px 15px; text-decoration: none; display: flex; align-items: center;">Hủy lọc</a>
+            
             </form>
 
             <div th:if="${#lists.isEmpty(threads)}" class="no-data">

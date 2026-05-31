@@ -16,4 +16,12 @@ public interface ThreadRepository extends JpaRepository<Thread, Long> {
 
     // Tìm kiếm bằng từ khóa đối với các bài chưa bị xóa
     List<Thread> findByTitleContainingIgnoreCaseAndDeletedFalse(String keyword);
+
+    // 2. MỚI: Tìm theo Tên tác giả (Tìm vào bảng User thông qua biến creator)
+    List<Thread> findByCreatorFullNameContainingIgnoreCaseAndDeletedFalse(String keyword);
+
+    // 3. MỚI: Tìm theo Nội dung (Tìm vào bảng Message liên kết với Thread)
+    // Lưu ý: Dùng chữ "Distinct" để tránh việc 1 bài viết bị hiển thị lặp lại nhiều lần 
+    // nếu có nhiều bình luận bên trong cùng chứa từ khóa đó.
+    List<Thread> findDistinctByMessagesContentContainingIgnoreCaseAndDeletedFalse(String keyword);
 }

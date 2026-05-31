@@ -38,20 +38,41 @@ public class HomeController {
     private UserRepository userRepository;
 
     // TÍNH NĂNG MỚI: Tích hợp Tìm kiếm (Keyword) và Sắp xếp bài mới nhất lên đầu
+    // TÍNH NĂNG MỚI: Tìm kiếm đa tiêu chí (Title, Content, Author)
     @GetMapping({ "/", "/index" })
-    public String index(@RequestParam(value = "keyword", required = false) String keyword, Model model) {
+    public String index(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "searchBy", required = false, defaultValue = "title") String searchBy,
+            Model model) {
+        
         List<Thread> threads;
 
+        // Nếu người dùng có nhập từ khóa
         if (keyword != null && !keyword.trim().isEmpty()) {
-            // SỬA LỖI Ở ĐÂY: Cập nhật tên hàm mới có chữ AndDeletedFalse
-            threads = threadRepository.findByTitleContainingIgnoreCaseAndDeletedFalse(keyword.trim());
+            String kw = keyword.trim();
+            
+            // Dựa vào tiêu chí chọn ở Dropdown để gọi DB
+            switch (searchBy) {
+                case "author":
+                    threads = threadRepository.findByCreatorFullNameContainingIgnoreCaseAndDeletedFalse(kw);
+                    break;
+                case "content":
+                    threads = threadRepository.findDistinctByMessagesContentContainingIgnoreCaseAndDeletedFalse(kw);
+                    break;
+                case "title":
+                default:
+                    threads = threadRepository.findByTitleContainingIgnoreCaseAndDeletedFalse(kw);
+                    break;
+            }
         } else {
-            // CẬP NHẬT LUÔN Ở ĐÂY: Chỉ lấy những bài chưa bị xóa mềm
+            // Nếu không tìm kiếm, hiển thị tất cả bài chưa xóa, mới nhất lên đầu
             threads = threadRepository.findByDeletedFalse(Sort.by(Sort.Direction.DESC, "createdAt"));
         }
 
         model.addAttribute("threads", threads);
         model.addAttribute("keyword", keyword); 
+        model.addAttribute("searchBy", searchBy); // Trả lại biến này để giữ trạng thái được chọn trên giao diện
+        
         return "common/index";
     }
 

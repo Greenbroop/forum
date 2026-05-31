@@ -22,6 +22,11 @@ public class Thread {
     @JoinColumn(name = "category_id", nullable = true)
     private Category category;
 
+    // BỔ SUNG QUAN HỆ 1-N: 1 Thread có nhiều Message
+    // Biến này tên là 'messages', do đó Spring Boot sẽ hiểu tên hàm 'findDistinctByMessagesContent...'
+    @OneToMany(mappedBy = "thread", cascade = CascadeType.ALL)
+    private java.util.List<Message> messages;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -134,5 +139,12 @@ public class Thread {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+    public java.util.List<Message> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(java.util.List<Message> messages) {
+        this.messages = messages;
     }
 }
