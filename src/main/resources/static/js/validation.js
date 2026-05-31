@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
+            
             // 2. Kiểm tra định dạng Email bằng Regular Expression (Regex)
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
