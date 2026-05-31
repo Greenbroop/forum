@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cấp quyền hệ thống - Admin</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="container">
+        <div class="content-box">
+            <h1>Quản lý và Phân quyền Thành viên</h1>
+            <p>Danh sách toàn bộ tài khoản đăng ký trên hệ thống cơ sở dữ liệu.</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên người dùng</th>
+                        <th>Email đăng ký</th>
+                        <th>Vai trò hiện tại</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u : ${users}">
+                        <td th:text="${u.id}">1</td>
+                        <td th:text="${u.username}">User_A</td>
+                        <td th:text="${u.email}">user@iu.edu.vn</td>
+                        <td>
+                            <span
+                                th:class="${u.role == 'ROLE_ADMIN' ? 'badge badge-admin' : (u.role == 'ROLE_MODERATOR' ? 'badge badge-mod' : 'badge')}"
+                                th:text="${u.role}">ROLE_USER</span>
+                        </td>
+                        <td>
+                            <a th:if="${u.role == 'ROLE_USER'}" th:href="@{/admin/promote/{id}(id=${u.id})}"
+                                class="btn-primary"
+                                onclick="return confirm('Bạn có chắc chắn muốn nâng cấp thành viên này lên làm Moderator?')">Thăng
+                                cấp làm Mod</a>
+
+                            <a th:if="${u.role == 'ROLE_MODERATOR'}" th:href="@{/admin/demote/{id}(id=${u.id})}"
+                                class="btn-danger"
+                                onclick="return confirm('Bạn có chắc chắn muốn giáng chức người này xuống làm User thường?')">Hạ
+                                cấp xuống User</a>
+
+                            <a th:if="${u.role != 'ROLE_ADMIN'}" th:href="@{/admin/toggle-status/{id}(id=${u.id})}"
+                                th:class="${u.active ? 'btn-danger' : 'btn-primary'}"
+                                th:text="${u.active ? 'Khóa tài khoản' : 'Mở khóa'}"
+                                onclick="return confirm('Xác nhận thay đổi trạng thái hoạt động của tài khoản này?')">
+                            </a>
+
+                            <span th:if="${u.role == 'ROLE_ADMIN'}">--</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script th:src="@{/js/theme.js}"></script>
+</body>
+
+</html>

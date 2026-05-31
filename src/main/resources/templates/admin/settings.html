@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cấu hình hệ thống</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="container">
+        <div class="content-box">
+            <h1>Cấu hình tự động dọn dẹp Diễn đàn</h1>
+            <p>Thiết lập các tham số chạy tự động ngầm (Scheduled Tasks) của hệ thống.</p>
+            
+            <form class="settings-form" onsubmit="alert('Cấu hình đã ghi nhận vào Service!'); return false;">
+                <div class="form-group">
+                    <label for="archive-days">Số ngày lưu trữ tối đa cho các Thread cũ trước khi tự động xóa:</label>
+                    <input type="number" id="archive-days" value="30" min="1" required class="form-control" style="width: 120px;">
+                    <small class="form-help">Hệ thống quét ngầm tự động lúc 00:00 hàng ngày (ThreadService) sẽ dựa vào đây để thực thi.</small>
+                </div>
+                <button type="submit" class="btn-primary">Lưu cấu hình</button>
+            </form>
+        </div>
+    </div>
+
+    <script th:src="@{/js/theme.js}"></script>
+</body>
+</html>
