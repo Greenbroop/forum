@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bàn làm việc Moderator</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="container">
+        <div class="content-box">
+            <h1>Bảng Điều Khiển Moderator</h1>
+            <p>Tổng quan hệ thống và các nội dung mới nhất cần kiểm duyệt.</p>
+            
+            <div th:if="${param.successDeleted}" class="alert alert-success">
+                Thao tác thành công: Bài viết vi phạm đã được loại bỏ!
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Tổng số Chủ đề (Threads)</h3>
+                    <div class="stat-number" th:text="${totalThreads}">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Tổng số Bình luận (Messages)</h3>
+                    <div class="stat-number" th:text="${totalMessages}">0</div>
+                </div>
+            </div>
+
+            <div class="recent-section">
+                <h2>Bảng Kiểm Duyệt Nhanh Chủ Đề</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tiêu đề</th>
+                            <th>Người đăng</th>
+                            <th>Thời gian</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="thread, iterStat : ${recentThreads}" th:if="${iterStat.index < 5}">
+                            <td>
+                                <strong><a th:href="@{/thread/{id}(id=${thread.id})}" th:text="${thread.title}">Tiêu đề</a></strong>
+                            </td>
+                            <td><span class="badge" th:text="${thread.creator.username}">User</span></td>
+                            <td th:text="${#temporals.format(thread.createdAt, 'dd/MM/yyyy HH:mm')}">Thời gian</td>
+                            <td>
+                                <a th:href="@{/mod/delete-thread/{id}(id=${thread.id})}" class="btn-danger" style="padding: 6px 12px; font-size: 0.85rem;"
+                                   onclick="return confirm('CẢNH BÁO: Thao tác này sẽ xóa vĩnh viễn chủ đề và toàn bộ bình luận bên trong. Tiếp tục?')">Xóa Vi Phạm</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(recentThreads)}">
+                            <td colspan="4" style="text-align: center; color: var(--text-muted);">Hệ thống hiện chưa có chủ đề nào.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+        </div>
+    </div>
+
+    <script th:src="@{/js/theme.js}"></script>
+</body>
+</html>

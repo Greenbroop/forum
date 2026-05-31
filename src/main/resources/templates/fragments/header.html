@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+</head>
+
+<body>
+    <div th:fragment="header">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <a th:href="@{/}" class="logo">IU Forum</a>
+            </div>
+            <div class="nav-links">
+                <a th:href="@{/}" class="nav-item">Trang chủ</a>
+
+                <a th:href="@{/admin/mods}" class="nav-item" sec:authorize="hasRole('ADMIN')">Quản lý Moderator</a>
+
+                <a th:href="@{/mod/dashboard}" class="nav-item" sec:authorize="hasAnyRole('MODERATOR', 'ADMIN')">Bàn làm
+                    việc Mod</a>
+
+                <span class="user-zone" sec:authorize="isAuthenticated()">
+                    Xin chào,
+                    <a th:href="@{/profile}" th:text="${currentUser?.fullName ?: #authentication.name}"
+                        style="color: var(--primary-color); font-weight: bold; text-decoration: underline;">User</a> |
+                    <a th:href="@{/logout}" class="nav-item">Đăng xuất</a>
+                </span>
+
+                <span class="user-zone" sec:authorize="isAnonymous()">
+                    <a th:href="@{/login}" class="login-link">Đăng nhập</a> hoặc
+                    <a th:href="@{/register}" class="register-link">Đăng ký</a>
+                </span>
+
+                <button id="theme-toggle" class="btn-theme">🌓 Chế độ</button>
+            </div>
+        </nav>
+    </div>
+</body>
+
+</html>
