@@ -1,13 +1,11 @@
 package com.iu.forum.repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.springframework.data.domain.Sort;
+import com.iu.forum.model.Thread;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import com.iu.forum.model.Thread;
+import java.time.LocalDateTime;
+import java.util.List;
+import org.springframework.data.domain.Sort;
 
 @Repository
 public interface ThreadRepository extends JpaRepository<Thread, Long> {

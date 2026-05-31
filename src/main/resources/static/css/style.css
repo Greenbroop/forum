@@ -218,7 +218,6 @@ button, .btn-primary, .btn-danger, .btn-theme, .btn-action {
     align-self: flex-end;
 }
 
-
 /* ==========================================================================
    6. BẢNG BIỂU (ADMIN TABLE)
    ========================================================================== */
@@ -396,7 +395,7 @@ button, .btn-primary, .btn-danger, .btn-theme, .btn-action {
 
 /* Tùy chỉnh màu sắc cho link Đăng nhập và Đăng ký */
 .login-link, .register-link {
-    color: var(--primary-color) !important;  /* Sử dụng màu xanh chủ đạo của hệ thống */
+    color: var(--primary-color) !important; /* Sử dụng màu xanh chủ đạo của hệ thống */
     font-weight: 600; /* Làm chữ đậm hơn */
     transition: color 0.2s;
 }
