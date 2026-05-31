@@ -52,11 +52,13 @@ public class HomeController {
             @RequestParam(value = "startDate", required = false) String startDateStr,
             @RequestParam(value = "endDate", required = false) String endDateStr,
             @RequestParam(value = "hasImage", required = false) Boolean hasImage,
+            // BỔ SUNG: Tham số hứng giá trị sắp xếp (mặc định là mới nhất)
+            @RequestParam(value = "sort", required = false, defaultValue = "newest") String sortParam,
             Model model) {
         
         List<Thread> threads;
 
-        // Xử lý chuyển đổi ngày tháng từ giao diện (String) sang LocalDateTime của Java
+        // Xử lý chuyển đổi ngày tháng... (Giữ nguyên đoạn try-catch parse ngày của bạn)
         java.time.LocalDateTime startDate = null;
         java.time.LocalDateTime endDate = null;
         try {
@@ -66,28 +68,33 @@ public class HomeController {
             if (endDateStr != null && !endDateStr.isEmpty()) {
                 endDate = java.time.LocalDate.parse(endDateStr).atTime(23, 59, 59);
             }
-        } catch (Exception e) {
-            // Bỏ qua nếu lỗi format ngày
+        } catch (Exception e) {}
+
+        // BỔ SUNG: Dịch chuỗi "sortParam" thành đối tượng Sort của Spring Data
+        Sort sort;
+        switch (sortParam) {
+            case "oldest":    sort = Sort.by(Sort.Direction.ASC, "createdAt"); break;
+            case "titleAsc":  sort = Sort.by(Sort.Direction.ASC, "title"); break;
+            case "titleDesc": sort = Sort.by(Sort.Direction.DESC, "title"); break;
+            case "viewsDesc": sort = Sort.by(Sort.Direction.DESC, "views"); break; // Sắp xếp theo lượt xem
+            case "newest":
+            default:          sort = Sort.by(Sort.Direction.DESC, "createdAt"); break;
         }
 
-        // Gọi siêu hàm Lọc kết hợp 5 tùy chọn
+        // Truyền đối tượng "sort" vào cuối các hàm gọi Database
         if (categoryId != null || authorId != null || (status != null && !status.isEmpty()) || startDate != null || endDate != null || (hasImage != null && hasImage)) {
-            threads = threadRepository.advancedFilter(categoryId, authorId, status, startDate, endDate, hasImage);
+            threads = threadRepository.advancedFilter(categoryId, authorId, status, startDate, endDate, hasImage, sort);
         } else if (keyword != null && !keyword.trim().isEmpty()) {
-            // Giữ lại tính năng tìm theo tiêu đề nếu chỉ nhập chữ
-            threads = threadRepository.findByTitleContainingIgnoreCaseAndDeletedFalse(keyword.trim());
+            threads = threadRepository.findByTitleContainingIgnoreCaseAndDeletedFalse(keyword.trim(), sort);
         } else {
-            // Mặc định tải trang
-            threads = threadRepository.findByDeletedFalse(Sort.by(Sort.Direction.DESC, "createdAt"));
+            threads = threadRepository.findByDeletedFalse(sort);
         }
 
         model.addAttribute("threads", threads);
-        
-        // Trả dữ liệu lên giao diện để làm form Lọc
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("users", userRepository.findAll());
         
-        // Trả lại các biến để hiển thị trạng thái đang chọn
+        // Trả lại các biến trạng thái
         model.addAttribute("keyword", keyword); 
         model.addAttribute("selectedCategory", categoryId);
         model.addAttribute("selectedAuthor", authorId);
@@ -95,6 +102,9 @@ public class HomeController {
         model.addAttribute("startDate", startDateStr);
         model.addAttribute("endDate", endDateStr);
         model.addAttribute("hasImage", hasImage);
+        
+        // BỔ SUNG: Trả lại trạng thái sắp xếp để giao diện HTML biết đường in đậm
+        model.addAttribute("currentSort", sortParam);
         
         return "common/index";
     }

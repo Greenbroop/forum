@@ -68,6 +68,17 @@
                         <input type="radio" name="status" value="OPEN" th:checked="${selectedStatus == 'OPEN'}"> Đang mở
                         <input type="radio" name="status" value="CLOSED" th:checked="${selectedStatus == 'CLOSED'}"> Đã khóa
                     </div>
+
+                    <div>
+                        <label style="font-size: 0.85em; font-weight: bold; color: #0284c7;">Sắp xếp theo:</label>
+                        <select name="sort" class="form-control" style="width: 100%; padding: 8px; border-color: #0284c7; background-color: #f0f9ff;">
+                            <option value="newest" th:selected="${currentSort == 'newest'}">Mới nhất (Mặc định)</option>
+                            <option value="oldest" th:selected="${currentSort == 'oldest'}">Cũ nhất</option>
+                            <option value="viewsDesc" th:selected="${currentSort == 'viewsDesc'}">Xem nhiều nhất</option>
+                            <option value="titleAsc" th:selected="${currentSort == 'titleAsc'}">Tên bài viết (A-Z)</option>
+                            <option value="titleDesc" th:selected="${currentSort == 'titleDesc'}">Tên bài viết (Z-A)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div style="display: flex; align-items: center; margin-top: 15px;">

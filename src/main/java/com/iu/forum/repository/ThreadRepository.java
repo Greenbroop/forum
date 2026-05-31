@@ -17,7 +17,7 @@ public interface ThreadRepository extends JpaRepository<Thread, Long> {
     List<Thread> findByCreatedAtBeforeAndDeletedFalse(LocalDateTime date);
 
     // Tìm kiếm bằng từ khóa đối với các bài chưa bị xóa
-    List<Thread> findByTitleContainingIgnoreCaseAndDeletedFalse(String keyword);
+    List<Thread> findByTitleContainingIgnoreCaseAndDeletedFalse(String keyword, Sort sort);
 
     // 2. MỚI: Tìm theo Tên tác giả (Tìm vào bảng User thông qua biến creator)
     List<Thread> findByCreatorFullNameContainingIgnoreCaseAndDeletedFalse(String keyword);
@@ -42,5 +42,6 @@ public interface ThreadRepository extends JpaRepository<Thread, Long> {
             @Param("status") String status,
             @Param("startDate") java.time.LocalDateTime startDate,
             @Param("endDate") java.time.LocalDateTime endDate,
-            @Param("hasImage") Boolean hasImage);
+            @Param("hasImage") Boolean hasImage,
+            Sort sort);
 }
