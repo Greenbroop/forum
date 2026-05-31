@@ -4,6 +4,7 @@ import com.iu.forum.model.Message;
 import com.iu.forum.model.Thread;
 import com.iu.forum.model.User;
 import com.iu.forum.repository.ThreadRepository;
+import com.iu.forum.repository.CategoryRepository;
 import com.iu.forum.repository.MessageRepository;
 import com.iu.forum.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ import java.util.List;
 public class HomeController {
 
     @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
     private ThreadRepository threadRepository;
 
     @Autowired
@@ -42,36 +46,55 @@ public class HomeController {
     @GetMapping({ "/", "/index" })
     public String index(
             @RequestParam(value = "keyword", required = false) String keyword,
-            @RequestParam(value = "searchBy", required = false, defaultValue = "title") String searchBy,
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
+            @RequestParam(value = "authorId", required = false) Long authorId,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "startDate", required = false) String startDateStr,
+            @RequestParam(value = "endDate", required = false) String endDateStr,
+            @RequestParam(value = "hasImage", required = false) Boolean hasImage,
             Model model) {
         
         List<Thread> threads;
 
-        // Nếu người dùng có nhập từ khóa
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            String kw = keyword.trim();
-            
-            // Dựa vào tiêu chí chọn ở Dropdown để gọi DB
-            switch (searchBy) {
-                case "author":
-                    threads = threadRepository.findByCreatorFullNameContainingIgnoreCaseAndDeletedFalse(kw);
-                    break;
-                case "content":
-                    threads = threadRepository.findDistinctByMessagesContentContainingIgnoreCaseAndDeletedFalse(kw);
-                    break;
-                case "title":
-                default:
-                    threads = threadRepository.findByTitleContainingIgnoreCaseAndDeletedFalse(kw);
-                    break;
+        // Xử lý chuyển đổi ngày tháng từ giao diện (String) sang LocalDateTime của Java
+        java.time.LocalDateTime startDate = null;
+        java.time.LocalDateTime endDate = null;
+        try {
+            if (startDateStr != null && !startDateStr.isEmpty()) {
+                startDate = java.time.LocalDate.parse(startDateStr).atStartOfDay();
             }
+            if (endDateStr != null && !endDateStr.isEmpty()) {
+                endDate = java.time.LocalDate.parse(endDateStr).atTime(23, 59, 59);
+            }
+        } catch (Exception e) {
+            // Bỏ qua nếu lỗi format ngày
+        }
+
+        // Gọi siêu hàm Lọc kết hợp 5 tùy chọn
+        if (categoryId != null || authorId != null || (status != null && !status.isEmpty()) || startDate != null || endDate != null || (hasImage != null && hasImage)) {
+            threads = threadRepository.advancedFilter(categoryId, authorId, status, startDate, endDate, hasImage);
+        } else if (keyword != null && !keyword.trim().isEmpty()) {
+            // Giữ lại tính năng tìm theo tiêu đề nếu chỉ nhập chữ
+            threads = threadRepository.findByTitleContainingIgnoreCaseAndDeletedFalse(keyword.trim());
         } else {
-            // Nếu không tìm kiếm, hiển thị tất cả bài chưa xóa, mới nhất lên đầu
+            // Mặc định tải trang
             threads = threadRepository.findByDeletedFalse(Sort.by(Sort.Direction.DESC, "createdAt"));
         }
 
         model.addAttribute("threads", threads);
+        
+        // Trả dữ liệu lên giao diện để làm form Lọc
+        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("users", userRepository.findAll());
+        
+        // Trả lại các biến để hiển thị trạng thái đang chọn
         model.addAttribute("keyword", keyword); 
-        model.addAttribute("searchBy", searchBy); // Trả lại biến này để giữ trạng thái được chọn trên giao diện
+        model.addAttribute("selectedCategory", categoryId);
+        model.addAttribute("selectedAuthor", authorId);
+        model.addAttribute("selectedStatus", status);
+        model.addAttribute("startDate", startDateStr);
+        model.addAttribute("endDate", endDateStr);
+        model.addAttribute("hasImage", hasImage);
         
         return "common/index";
     }

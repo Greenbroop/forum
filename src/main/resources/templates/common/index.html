@@ -23,20 +23,62 @@
         <div class="content-box">
             <h2>Chủ đề thảo luận</h2>
 
-            <form th:action="@{/}" method="get" style="margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <form th:action="@{/}" method="get" style="margin-bottom: 25px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                <h4 style="margin-top: 0; margin-bottom: 15px; color: #374151;">🔍 Tìm kiếm & Bộ lọc nâng cao</h4>
                 
-                <select name="searchBy" class="form-control" style="width: auto; padding: 8px; border-radius: 4px; border: 1px solid #ccc; outline: none;">
-                    <option value="title" th:selected="${searchBy == 'title'}">Tìm trong Tiêu đề</option>
-                    <option value="content" th:selected="${searchBy == 'content'}">Tìm trong Nội dung</option>
-                    <option value="author" th:selected="${searchBy == 'author'}">Tìm theo Tên tác giả</option>
-                </select>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <select name="searchBy" class="form-control" style="width: auto; padding: 8px; border-radius: 4px; border: 1px solid #ccc; outline: none;">
+                        <option value="title" th:selected="${searchBy == 'title'}">Tìm trong Tiêu đề</option>
+                        <option value="content" th:selected="${searchBy == 'content'}">Tìm trong Nội dung</option>
+                        <option value="author" th:selected="${searchBy == 'author'}">Tìm theo Tên tác giả</option>
+                    </select>
+                    <input type="text" name="keyword" th:value="${keyword}" class="form-control" style="flex-grow: 1; padding: 8px;" placeholder="Nhập từ khóa cần tìm...">
+                </div>
 
-                <input type="text" name="keyword" th:value="${keyword}" class="form-control" style="flex-grow: 1; padding: 8px;"
-                    placeholder="Nhập từ khóa cần tìm...">
-                
-                <button type="submit" class="btn-primary" style="padding: 8px 15px;">Tìm kiếm</button>
-                <a th:if="${keyword}" th:href="@{/}" class="btn-theme" style="padding: 8px 15px; text-decoration: none; display: flex; align-items: center;">Hủy lọc</a>
-            
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; padding-top: 15px; border-top: 1px dashed #ccc;">
+                    
+                    <div>
+                        <label style="font-size: 0.85em; font-weight: bold;">Chuyên mục:</label>
+                        <select name="categoryId" class="form-control" style="width: 100%; padding: 8px;">
+                            <option value="">-- Tất cả chuyên mục --</option>
+                            <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}" th:selected="${cat.id == selectedCategory}"></option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 0.85em; font-weight: bold;">Người đăng:</label>
+                        <select name="authorId" class="form-control" style="width: 100%; padding: 8px;">
+                            <option value="">-- Tất cả thành viên --</option>
+                            <option th:each="u : ${users}" th:value="${u.id}" th:text="${u.fullName != null ? u.fullName : u.username}" th:selected="${u.id == selectedAuthor}"></option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 0.85em; font-weight: bold;">Từ ngày:</label>
+                        <input type="date" name="startDate" th:value="${startDate}" class="form-control" style="width: 100%; padding: 8px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85em; font-weight: bold;">Đến ngày:</label>
+                        <input type="date" name="endDate" th:value="${endDate}" class="form-control" style="width: 100%; padding: 8px;">
+                    </div>
+
+                    <div>
+                        <label style="font-size: 0.85em; font-weight: bold;">Trạng thái:</label><br>
+                        <input type="radio" name="status" value="" th:checked="${selectedStatus == null or selectedStatus == ''}"> Tất cả
+                        <input type="radio" name="status" value="OPEN" th:checked="${selectedStatus == 'OPEN'}"> Đang mở
+                        <input type="radio" name="status" value="CLOSED" th:checked="${selectedStatus == 'CLOSED'}"> Đã khóa
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; margin-top: 15px;">
+                    <input type="checkbox" name="hasImage" value="true" th:checked="${hasImage}" style="margin-right: 8px; transform: scale(1.2);">
+                    <label style="font-weight: bold; cursor: pointer;">Chỉ hiện bài có hình ảnh đính kèm</label>
+                </div>
+
+                <div style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn-primary" style="padding: 8px 20px;">Tìm kiếm & Lọc</button>
+                    <a th:href="@{/}" class="btn-theme" style="padding: 8px 20px; text-decoration: none;">Xóa tất cả bộ lọc</a>
+                </div>
             </form>
 
             <div th:if="${#lists.isEmpty(threads)}" class="no-data">
