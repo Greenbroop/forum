@@ -23,7 +23,10 @@
         <div class="content-box">
             <h2>Chủ đề thảo luận</h2>
 
-            <form th:action="@{/}" method="get" style="margin-bottom: 25px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb;">
+            <form id="filterForm" th:action="@{/}" method="get" style="margin-bottom: 25px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                
+                <input type="hidden" name="page" id="pageInput" th:value="${currentPage}">
+                
                 <h4 style="margin-top: 0; margin-bottom: 15px; color: #374151;">🔍 Tìm kiếm & Bộ lọc nâng cao</h4>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
@@ -92,11 +95,11 @@
                 </div>
             </form>
 
-            <div th:if="${#lists.isEmpty(threads)}" class="no-data">
+            <div th:if="${threads.totalElements == 0}" class="no-data">
                 <p>Không tìm thấy chủ đề nào phù hợp.</p>
             </div>
 
-            <div class="thread-card" th:each="thread : ${threads}">
+            <div class="thread-card" th:each="thread : ${threads.content}">
                 <div class="thread-info">
                     <h3>
                         <a th:href="@{/thread/{id}(id=${thread.id})}" th:text="${thread.title}">Tiêu đề mẫu</a>
@@ -118,7 +121,44 @@
                         chủ đề</a>
                 </div>
             </div>
-        </div>
+
+            <div th:if="${threads.totalElements > 0}" style="margin-top: 20px; font-style: italic; color: #555;">
+                Hiển thị kết quả từ <strong th:text="${(threads.number * threads.size) + 1}"></strong> 
+                đến <strong th:text="${threads.number == threads.totalPages - 1 ? threads.totalElements : (threads.number + 1) * threads.size}"></strong> 
+                trong tổng số <strong th:text="${threads.totalElements}"></strong> bài viết.
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px;">
+                
+                <div>
+                    <label>Hiển thị: </label>
+                    <select name="size" form="filterForm" onchange="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();" style="padding: 5px; border-radius: 4px;">
+                        <option value="10" th:selected="${pageSize == 10}">10 kết quả</option>
+                        <option value="20" th:selected="${pageSize == 20}">20 kết quả</option>
+                        <option value="50" th:selected="${pageSize == 50}">50 kết quả</option>
+                    </select>
+                </div>
+
+                <div th:if="${threads.totalPages > 1}" style="display: flex; gap: 5px;">
+                    <button type="button" th:disabled="${currentPage == 1}" th:onclick="|goToPage(${currentPage - 1})|" class="btn-theme" style="padding: 5px 10px;">&laquo; Trước</button>
+                    
+                    <span th:each="i : ${#numbers.sequence(1, threads.totalPages)}">
+                        <button type="button" th:onclick="|goToPage(${i})|" th:text="${i}" 
+                                th:classappend="${currentPage == i ? 'btn-primary' : 'btn-theme'}" 
+                                style="padding: 5px 12px; font-weight: bold; cursor: pointer;"></button>
+                    </span>
+                    
+                    <button type="button" th:disabled="${currentPage == threads.totalPages}" th:onclick="|goToPage(${currentPage + 1})|" class="btn-theme" style="padding: 5px 10px;">Sau &raquo;</button>
+                </div>
+            </div>
+
+            <script>
+                function goToPage(pageNum) {
+                    document.getElementById('pageInput').value = pageNum;
+                    document.getElementById('filterForm').submit();
+                }
+            </script>
+            </div>
     </div>
 
     <script th:src="@{/js/theme.js}"></script>

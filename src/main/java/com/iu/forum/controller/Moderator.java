@@ -24,17 +24,19 @@ public class Moderator {
     private MessageRepository messageRepository;
 
     @GetMapping("/dashboard")
-    public String modDashboard(Model model) { 
+    public String modDashboard(Model model) {
         // Lấy số liệu thống kê từ CSDL
         long totalThreads = threadRepository.count();
         long totalMessages = messageRepository.count();
-        
+
         // Đẩy dữ liệu sang HTML
         model.addAttribute("totalThreads", totalThreads);
         model.addAttribute("totalMessages", totalMessages);
-        
-        // CẬP NHẬT: Bảng Dashboard của Mod cũng chỉ hiển thị các bài chưa bị xóa mềm, sắp xếp mới nhất
-        model.addAttribute("recentThreads", threadRepository.findByDeletedFalse(Sort.by(Sort.Direction.DESC, "createdAt")));
+
+        // CẬP NHẬT: Lấy 10 bài viết mới nhất (Trang 0, kích thước 10) để hiển thị lên Dashboard Mod
+        model.addAttribute("recentThreads", threadRepository.findByDeletedFalse(
+                org.springframework.data.domain.PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")))
+                .getContent());
 
         return "mod/dashboard";
     }
@@ -51,14 +53,14 @@ public class Moderator {
     }
 
     // Xóa nguyên một Thread vi phạm
-   @GetMapping("/delete-thread/{id}")
+    @GetMapping("/delete-thread/{id}")
     @Transactional
     public String deleteThread(@PathVariable Long id) {
         threadRepository.findById(id).ifPresent(thread -> {
             // 1. Xóa mềm Thread cha
             thread.setDeleted(true);
             threadRepository.save(thread);
-            
+
             // 2. Xóa mềm luôn sạch sẽ các tin nhắn con bên trong
             List<Message> messages = messageRepository.findByThread(thread);
             for (Message msg : messages) {
@@ -66,7 +68,7 @@ public class Moderator {
             }
             messageRepository.saveAll(messages);
         });
-        
-        return "redirect:/mod/dashboard?successDeleted"; 
+
+        return "redirect:/mod/dashboard?successDeleted";
     }
 }

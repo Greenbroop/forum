@@ -3,12 +3,15 @@ package com.iu.forum.controller;
 import com.iu.forum.model.Message;
 import com.iu.forum.model.Thread;
 import com.iu.forum.model.User;
-import com.iu.forum.repository.ThreadRepository;
 import com.iu.forum.repository.CategoryRepository;
 import com.iu.forum.repository.MessageRepository;
+import com.iu.forum.repository.ThreadRepository;
 import com.iu.forum.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort; 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,15 +19,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.UUID;
-
 import java.security.Principal;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.UUID;
 
 @Controller
 public class HomeController {
@@ -41,8 +43,7 @@ public class HomeController {
     @Autowired
     private UserRepository userRepository;
 
-    // TÍNH NĂNG MỚI: Tích hợp Tìm kiếm (Keyword) và Sắp xếp bài mới nhất lên đầu
-    // TÍNH NĂNG MỚI: Tìm kiếm đa tiêu chí (Title, Content, Author)
+    // TÍNH NĂNG MỚI: Tìm kiếm đa tiêu chí, Lọc nâng cao, Sắp xếp và Phân trang
     @GetMapping({ "/", "/index" })
     public String index(
             @RequestParam(value = "keyword", required = false) String keyword,
@@ -52,15 +53,14 @@ public class HomeController {
             @RequestParam(value = "startDate", required = false) String startDateStr,
             @RequestParam(value = "endDate", required = false) String endDateStr,
             @RequestParam(value = "hasImage", required = false) Boolean hasImage,
-            // BỔ SUNG: Tham số hứng giá trị sắp xếp (mặc định là mới nhất)
             @RequestParam(value = "sort", required = false, defaultValue = "newest") String sortParam,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             Model model) {
         
-        List<Thread> threads;
-
-        // Xử lý chuyển đổi ngày tháng... (Giữ nguyên đoạn try-catch parse ngày của bạn)
-        java.time.LocalDateTime startDate = null;
-        java.time.LocalDateTime endDate = null;
+        // 1. Xử lý chuyển đổi ngày tháng
+        LocalDateTime startDate = null;
+        LocalDateTime endDate = null;
         try {
             if (startDateStr != null && !startDateStr.isEmpty()) {
                 startDate = java.time.LocalDate.parse(startDateStr).atStartOfDay();
@@ -68,33 +68,45 @@ public class HomeController {
             if (endDateStr != null && !endDateStr.isEmpty()) {
                 endDate = java.time.LocalDate.parse(endDateStr).atTime(23, 59, 59);
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            // Bỏ qua nếu lỗi format ngày
+        }
 
-        // BỔ SUNG: Dịch chuỗi "sortParam" thành đối tượng Sort của Spring Data
+        // 2. Cấu hình Sắp xếp (Sort)
         Sort sort;
         switch (sortParam) {
             case "oldest":    sort = Sort.by(Sort.Direction.ASC, "createdAt"); break;
             case "titleAsc":  sort = Sort.by(Sort.Direction.ASC, "title"); break;
             case "titleDesc": sort = Sort.by(Sort.Direction.DESC, "title"); break;
-            case "viewsDesc": sort = Sort.by(Sort.Direction.DESC, "views"); break; // Sắp xếp theo lượt xem
+            case "viewsDesc": sort = Sort.by(Sort.Direction.DESC, "views"); break;
             case "newest":
             default:          sort = Sort.by(Sort.Direction.DESC, "createdAt"); break;
         }
 
-        // Truyền đối tượng "sort" vào cuối các hàm gọi Database
+        // 3. Cấu hình Phân trang (Pageable) kết hợp Sắp xếp
+        // Chú ý: Spring JPA đếm trang từ 0, nên page thực tế = page - 1
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        
+        // 4. Lấy dữ liệu từ Database
+        Page<Thread> threadPage;
         if (categoryId != null || authorId != null || (status != null && !status.isEmpty()) || startDate != null || endDate != null || (hasImage != null && hasImage)) {
-            threads = threadRepository.advancedFilter(categoryId, authorId, status, startDate, endDate, hasImage, sort);
+            threadPage = threadRepository.advancedFilter(categoryId, authorId, status, startDate, endDate, hasImage, pageable);
         } else if (keyword != null && !keyword.trim().isEmpty()) {
-            threads = threadRepository.findByTitleContainingIgnoreCaseAndDeletedFalse(keyword.trim(), sort);
+            threadPage = threadRepository.findByTitleContainingIgnoreCaseAndDeletedFalse(keyword.trim(), pageable);
         } else {
-            threads = threadRepository.findByDeletedFalse(sort);
+            threadPage = threadRepository.findByDeletedFalse(pageable);
         }
 
-        model.addAttribute("threads", threads);
+        // 5. Đẩy dữ liệu danh sách bài viết lên giao diện
+        model.addAttribute("threads", threadPage); 
+        model.addAttribute("currentPage", page);
+        model.addAttribute("pageSize", size);
+
+        // 6. Đẩy dữ liệu phụ trợ cho hộp Dropdown
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("users", userRepository.findAll());
         
-        // Trả lại các biến trạng thái
+        // 7. Đẩy lại các biến để hiển thị trạng thái bộ lọc đang được chọn
         model.addAttribute("keyword", keyword); 
         model.addAttribute("selectedCategory", categoryId);
         model.addAttribute("selectedAuthor", authorId);
@@ -102,8 +114,6 @@ public class HomeController {
         model.addAttribute("startDate", startDateStr);
         model.addAttribute("endDate", endDateStr);
         model.addAttribute("hasImage", hasImage);
-        
-        // BỔ SUNG: Trả lại trạng thái sắp xếp để giao diện HTML biết đường in đậm
         model.addAttribute("currentSort", sortParam);
         
         return "common/index";
@@ -120,12 +130,11 @@ public class HomeController {
         return "common/thread-detail";
     }
 
-
     // Xử lý gửi bình luận (Đã gộp xử lý text và xử lý upload file đính kèm)
     @PostMapping("/thread/{id}/reply")
     public String replyToThread(@PathVariable Long id,
             @RequestParam("content") String content,
-            @RequestParam(value = "file", required = false) MultipartFile file, // required = false để không bắt buộc phải có ảnh
+            @RequestParam(value = "file", required = false) MultipartFile file, 
             Principal principal) {
         
         if (principal == null) {
@@ -144,10 +153,9 @@ public class HomeController {
         newMessage.setUser(currentUser);
         newMessage.setCreatedAt(LocalDateTime.now());
 
-        // XỬ LÝ LOGIC UPLOAD FILE (Nếu người dùng có chọn file)
+        // XỬ LÝ LOGIC UPLOAD FILE
         if (file != null && !file.isEmpty()) {
             try {
-                // Định nghĩa thư mục lưu file (Tạo folder "uploads" nằm ngay ngoài thư mục dự án)
                 String uploadDir = System.getProperty("user.dir") + "/uploads/";
                 Path uploadPath = Paths.get(uploadDir);
 
@@ -155,18 +163,15 @@ public class HomeController {
                     Files.createDirectories(uploadPath); 
                 }
 
-                // Tránh trùng tên file bằng cách thêm chuỗi ngẫu nhiên UUID 
                 String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
                 Path filePath = uploadPath.resolve(uniqueFileName);
 
-                // Sao chép (Lưu) file từ máy tính người dùng vào folder uploads trên Server
                 Files.copy(file.getInputStream(), filePath);
 
-                // Lưu đường dẫn URL ảo vào database để sau này HTML có thể gọi ra hiển thị
                 newMessage.setFileUrl("/uploads/" + uniqueFileName);
 
             } catch (IOException e) {
-                e.printStackTrace(); // Ghi nhận lỗi nếu lưu file thất bại
+                e.printStackTrace(); 
             }
         }
 
