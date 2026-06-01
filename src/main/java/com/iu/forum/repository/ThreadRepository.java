@@ -14,26 +14,23 @@ import java.util.List;
 @Repository
 public interface ThreadRepository extends JpaRepository<Thread, Long> {
     
-    // 1. Lấy tất cả bài chưa bị xóa (Có Phân trang & Sắp xếp)
     Page<Thread> findByDeletedFalse(Pageable pageable);
     
-    // Hàm này giữ nguyên List vì thường dùng cho tính năng dọn dẹp chạy ngầm của Admin
     List<Thread> findByCreatedAtBeforeAndDeletedFalse(LocalDateTime date);
 
-    // 2. Tìm kiếm bằng từ khóa trong Tiêu đề (Có Phân trang)
     Page<Thread> findByTitleContainingIgnoreCaseAndDeletedFalse(String keyword, Pageable pageable);
 
-    // 3. Tìm theo Tên tác giả (Có Phân trang)
     Page<Thread> findByCreatorFullNameContainingIgnoreCaseAndDeletedFalse(String keyword, Pageable pageable);
 
-    // 4. Tìm theo Nội dung bình luận (Có Phân trang)
     Page<Thread> findDistinctByMessagesContentContainingIgnoreCaseAndDeletedFalse(String keyword, Pageable pageable);
 
-    // 5. TÍNH NĂNG MỚI: Siêu bộ lọc 5 tiêu chí kết hợp (Có Phân trang)
+    // BƯỚC QUAN TRỌNG: Dùng LEFT JOIN t.tags tag để móc nối dữ liệu qua bảng trung gian
     @Query("SELECT DISTINCT t FROM Thread t " +
+           "LEFT JOIN t.tags tag " +
            "WHERE t.deleted = false " +
            "AND (:categoryId IS NULL OR t.category.id = :categoryId) " +
            "AND (:authorId IS NULL OR t.creator.id = :authorId) " +
+           "AND (:tagId IS NULL OR tag.id = :tagId) " + // <--- BỔ SUNG ĐIỀU KIỆN TAG
            "AND (:status IS NULL OR :status = '' OR t.status = :status) " +
            "AND (CAST(:startDate AS date) IS NULL OR t.createdAt >= :startDate) " +
            "AND (CAST(:endDate AS date) IS NULL OR t.createdAt <= :endDate) " +
@@ -41,9 +38,10 @@ public interface ThreadRepository extends JpaRepository<Thread, Long> {
     Page<Thread> advancedFilter(
             @Param("categoryId") Long categoryId,
             @Param("authorId") Long authorId,
+            @Param("tagId") Long tagId, // <--- THÊM THAM SỐ NÀY
             @Param("status") String status,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate,
             @Param("hasImage") Boolean hasImage,
-            Pageable pageable); // <--- Trùm cuối Pageable nằm ở đây
+            Pageable pageable);
 }

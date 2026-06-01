@@ -49,6 +49,14 @@
                     </div>
 
                     <div>
+                        <label style="font-size: 0.85em; font-weight: bold;">Thẻ (Tag):</label>
+                        <select name="tagId" class="form-control" style="width: 100%; padding: 8px;">
+                            <option value="">-- Tất cả Thẻ --</option>
+                            <option th:each="t : ${tags}" th:value="${t.id}" th:text="'#' + ${t.name}" th:selected="${t.id == selectedTag}"></option>
+                        </select>
+                    </div>
+
+                    <div>
                         <label style="font-size: 0.85em; font-weight: bold;">Người đăng:</label>
                         <select name="authorId" class="form-control" style="width: 100%; padding: 8px;">
                             <option value="">-- Tất cả thành viên --</option>
@@ -60,6 +68,7 @@
                         <label style="font-size: 0.85em; font-weight: bold;">Từ ngày:</label>
                         <input type="date" name="startDate" th:value="${startDate}" class="form-control" style="width: 100%; padding: 8px;">
                     </div>
+                    
                     <div>
                         <label style="font-size: 0.85em; font-weight: bold;">Đến ngày:</label>
                         <input type="date" name="endDate" th:value="${endDate}" class="form-control" style="width: 100%; padding: 8px;">
@@ -89,9 +98,12 @@
                     <label style="font-weight: bold; cursor: pointer;">Chỉ hiện bài có hình ảnh đính kèm</label>
                 </div>
 
-                <div style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px; display: flex; gap: 10px;">
+                <div style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
                     <button type="submit" class="btn-primary" style="padding: 8px 20px;">Tìm kiếm & Lọc</button>
                     <a th:href="@{/}" class="btn-theme" style="padding: 8px 20px; text-decoration: none;">Xóa tất cả bộ lọc</a>
+                    
+                    <button type="button" onclick="saveFilter()" style="padding: 8px 20px; background-color: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">💾 Lưu bộ lọc này</button>
+                    <button type="button" onclick="loadFilter()" id="btnLoadFilter" style="display: none; padding: 8px 20px; background-color: #f59e0b; color: white; border: none; border-radius: 4px; cursor: pointer;">🔄 Dùng bộ lọc đã lưu</button>
                 </div>
             </form>
 
@@ -158,12 +170,65 @@
             </div>
 
             <script>
+                // 1. Phân trang
                 function goToPage(pageNum) {
                     document.getElementById('pageInput').value = pageNum;
                     document.getElementById('filterForm').submit();
                 }
+
+                // 2. Hiện nút tải bộ lọc nếu có lưu trước đó
+                document.addEventListener("DOMContentLoaded", function() {
+                    if (localStorage.getItem("forumSavedFilter")) {
+                        document.getElementById("btnLoadFilter").style.display = "inline-block";
+                    }
+                });
+
+                // 3. Hàm lưu bộ lọc
+                function saveFilter() {
+                    const filterData = {
+                        searchBy: document.querySelector('select[name="searchBy"]').value,
+                        keyword: document.querySelector('input[name="keyword"]').value,
+                        categoryId: document.querySelector('select[name="categoryId"]').value,
+                        tagId: document.querySelector('select[name="tagId"]').value, // Lưu Tag
+                        authorId: document.querySelector('select[name="authorId"]').value,
+                        startDate: document.querySelector('input[name="startDate"]').value,
+                        endDate: document.querySelector('input[name="endDate"]').value,
+                        status: document.querySelector('input[name="status"]:checked').value,
+                        sort: document.querySelector('select[name="sort"]').value,
+                        hasImage: document.querySelector('input[name="hasImage"]').checked
+                    };
+                    
+                    localStorage.setItem("forumSavedFilter", JSON.stringify(filterData));
+                    alert("✅ Đã lưu bộ lọc thành công!");
+                    document.getElementById("btnLoadFilter").style.display = "inline-block";
+                }
+
+                // 4. Hàm tải bộ lọc
+                function loadFilter() {
+                    const saved = localStorage.getItem("forumSavedFilter");
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        
+                        document.querySelector('select[name="searchBy"]').value = data.searchBy || 'title';
+                        document.querySelector('input[name="keyword"]').value = data.keyword || '';
+                        document.querySelector('select[name="categoryId"]').value = data.categoryId || '';
+                        document.querySelector('select[name="tagId"]').value = data.tagId || ''; // Phục hồi Tag
+                        document.querySelector('select[name="authorId"]').value = data.authorId || '';
+                        document.querySelector('input[name="startDate"]').value = data.startDate || '';
+                        document.querySelector('input[name="endDate"]').value = data.endDate || '';
+                        
+                        let statusRadio = document.querySelector('input[name="status"][value="' + data.status + '"]');
+                        if (statusRadio) statusRadio.checked = true;
+                        
+                        document.querySelector('select[name="sort"]').value = data.sort || 'newest';
+                        document.querySelector('input[name="hasImage"]').checked = data.hasImage || false;
+
+                        document.getElementById("pageInput").value = 1; 
+                        document.getElementById("filterForm").submit();
+                    }
+                }
             </script>
-            </div>
+        </div>
     </div>
 
     <script th:src="@{/js/theme.js}"></script>

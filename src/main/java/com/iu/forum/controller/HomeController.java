@@ -5,6 +5,7 @@ import com.iu.forum.model.Thread;
 import com.iu.forum.model.User;
 import com.iu.forum.repository.CategoryRepository;
 import com.iu.forum.repository.MessageRepository;
+import com.iu.forum.repository.TagRepository; // IMPORT TAG REPOSITORY
 import com.iu.forum.repository.ThreadRepository;
 import com.iu.forum.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,12 +44,15 @@ public class HomeController {
     @Autowired
     private UserRepository userRepository;
 
-    // TÍNH NĂNG MỚI: Tìm kiếm đa tiêu chí, Lọc nâng cao, Sắp xếp và Phân trang
+    @Autowired
+    private TagRepository tagRepository; // BỔ SUNG
+
     @GetMapping({ "/", "/index" })
     public String index(
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "authorId", required = false) Long authorId,
+            @RequestParam(value = "tagId", required = false) Long tagId, // BỔ SUNG HỨNG TAG ID
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "startDate", required = false) String startDateStr,
             @RequestParam(value = "endDate", required = false) String endDateStr,
@@ -58,7 +62,6 @@ public class HomeController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             Model model) {
         
-        // 1. Xử lý chuyển đổi ngày tháng
         LocalDateTime startDate = null;
         LocalDateTime endDate = null;
         try {
@@ -68,11 +71,8 @@ public class HomeController {
             if (endDateStr != null && !endDateStr.isEmpty()) {
                 endDate = java.time.LocalDate.parse(endDateStr).atTime(23, 59, 59);
             }
-        } catch (Exception e) {
-            // Bỏ qua nếu lỗi format ngày
-        }
+        } catch (Exception e) {}
 
-        // 2. Cấu hình Sắp xếp (Sort)
         Sort sort;
         switch (sortParam) {
             case "oldest":    sort = Sort.by(Sort.Direction.ASC, "createdAt"); break;
@@ -83,33 +83,30 @@ public class HomeController {
             default:          sort = Sort.by(Sort.Direction.DESC, "createdAt"); break;
         }
 
-        // 3. Cấu hình Phân trang (Pageable) kết hợp Sắp xếp
-        // Chú ý: Spring JPA đếm trang từ 0, nên page thực tế = page - 1
         Pageable pageable = PageRequest.of(page - 1, size, sort);
-        
-        // 4. Lấy dữ liệu từ Database
         Page<Thread> threadPage;
-        if (categoryId != null || authorId != null || (status != null && !status.isEmpty()) || startDate != null || endDate != null || (hasImage != null && hasImage)) {
-            threadPage = threadRepository.advancedFilter(categoryId, authorId, status, startDate, endDate, hasImage, pageable);
+        
+        // CẬP NHẬT: Thêm tagId vào điều kiện lọc
+        if (categoryId != null || authorId != null || tagId != null || (status != null && !status.isEmpty()) || startDate != null || endDate != null || (hasImage != null && hasImage)) {
+            threadPage = threadRepository.advancedFilter(categoryId, authorId, tagId, status, startDate, endDate, hasImage, pageable);
         } else if (keyword != null && !keyword.trim().isEmpty()) {
             threadPage = threadRepository.findByTitleContainingIgnoreCaseAndDeletedFalse(keyword.trim(), pageable);
         } else {
             threadPage = threadRepository.findByDeletedFalse(pageable);
         }
 
-        // 5. Đẩy dữ liệu danh sách bài viết lên giao diện
         model.addAttribute("threads", threadPage); 
         model.addAttribute("currentPage", page);
         model.addAttribute("pageSize", size);
 
-        // 6. Đẩy dữ liệu phụ trợ cho hộp Dropdown
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("users", userRepository.findAll());
+        model.addAttribute("tags", tagRepository.findAll()); // TRUYỀN DANH SÁCH TAG LÊN GIAO DIỆN
         
-        // 7. Đẩy lại các biến để hiển thị trạng thái bộ lọc đang được chọn
         model.addAttribute("keyword", keyword); 
         model.addAttribute("selectedCategory", categoryId);
         model.addAttribute("selectedAuthor", authorId);
+        model.addAttribute("selectedTag", tagId); // ĐỂ GIAO DIỆN HIỂN THỊ ĐÚNG TAG ĐANG CHỌN
         model.addAttribute("selectedStatus", status);
         model.addAttribute("startDate", startDateStr);
         model.addAttribute("endDate", endDateStr);
@@ -119,7 +116,6 @@ public class HomeController {
         return "common/index";
     }
 
-    // Xem chi tiết một Thread
     @GetMapping("/thread/{id}")
     public String threadDetail(@PathVariable Long id, Model model) {
         Thread thread = threadRepository.findById(id)
@@ -130,22 +126,16 @@ public class HomeController {
         return "common/thread-detail";
     }
 
-    // Xử lý gửi bình luận (Đã gộp xử lý text và xử lý upload file đính kèm)
     @PostMapping("/thread/{id}/reply")
     public String replyToThread(@PathVariable Long id,
             @RequestParam("content") String content,
             @RequestParam(value = "file", required = false) MultipartFile file, 
             Principal principal) {
         
-        if (principal == null) {
-            return "redirect:/login";
-        }
+        if (principal == null) return "redirect:/login";
 
-        Thread thread = threadRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy chủ đề"));
-
-        User currentUser = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản"));
+        Thread thread = threadRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy chủ đề"));
+        User currentUser = userRepository.findByUsername(principal.getName()).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản"));
 
         Message newMessage = new Message();
         newMessage.setContent(content);
@@ -153,28 +143,19 @@ public class HomeController {
         newMessage.setUser(currentUser);
         newMessage.setCreatedAt(LocalDateTime.now());
 
-        // XỬ LÝ LOGIC UPLOAD FILE
         if (file != null && !file.isEmpty()) {
             try {
                 String uploadDir = System.getProperty("user.dir") + "/uploads/";
                 Path uploadPath = Paths.get(uploadDir);
-
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath); 
-                }
-
+                if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath); 
                 String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
                 Path filePath = uploadPath.resolve(uniqueFileName);
-
                 Files.copy(file.getInputStream(), filePath);
-
                 newMessage.setFileUrl("/uploads/" + uniqueFileName);
-
             } catch (IOException e) {
                 e.printStackTrace(); 
             }
         }
-
         messageRepository.save(newMessage);
         return "redirect:/thread/" + id;
     }
