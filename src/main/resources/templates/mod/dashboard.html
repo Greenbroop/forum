@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Bàn làm việc Moderator</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div th:replace="~{fragments/header :: header}"></div>
@@ -26,6 +27,53 @@
                     <h3>Tổng số Bình luận (Messages)</h3>
                     <div class="stat-number" th:text="${totalMessages}">0</div>
                 </div>
+            </div>
+
+            <div style="margin-top: 30px; margin-bottom: 30px; background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px;">
+                <h3 style="margin-top: 0; color: #1e293b; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px;">
+                    📊 Thống kê tỷ trọng bài viết theo chuyên mục
+                </h3>
+                
+                <div style="width: 100%; max-width: 450px; margin: 20px auto;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+
+                <script th:inline="javascript">
+                    document.addEventListener('DOMContentLoaded', function() {
+                        var labels = /*[[${chartLabels}]]*/ [];
+                        var data = /*[[${chartData}]]*/ [];
+
+                        if (labels && labels.length > 0 && data && data.length > 0) {
+                            var ctx = document.getElementById('categoryChart').getContext('2d');
+                            new Chart(ctx, {
+                                type: 'pie', 
+                                data: {
+                                    labels: labels,
+                                    datasets: [{
+                                        label: 'Số bài viết',
+                                        data: data,
+                                        backgroundColor: [
+                                            '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
+                                            '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'
+                                        ],
+                                        borderWidth: 2,
+                                        borderColor: '#ffffff',
+                                        hoverOffset: 8
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: { 
+                                            position: 'bottom',
+                                            labels: { padding: 15, font: { size: 13 } }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    });
+                </script>
             </div>
 
             <div class="recent-section">

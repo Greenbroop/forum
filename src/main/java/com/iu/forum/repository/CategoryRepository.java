@@ -2,6 +2,7 @@ package com.iu.forum.repository;
 
 import com.iu.forum.model.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 
@@ -10,5 +11,9 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     
     // Lấy tất cả chuyên mục chưa bị xóa, sắp xếp theo thứ tự hiển thị
     List<Category> findByDeletedFalseOrderByDisplayOrderAsc();
+
+    // BỔ SUNG: Hàm thống kê số lượng bài viết chưa bị xóa của mỗi chuyên mục
+    @Query("SELECT c.name, (SELECT COUNT(t) FROM Thread t WHERE t.category = c AND t.deleted = false) FROM Category c")
+    List<Object[]> getCategoryStats();
     
 }
