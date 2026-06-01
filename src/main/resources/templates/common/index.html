@@ -98,6 +98,10 @@
                     <label style="font-weight: bold; cursor: pointer;">Chỉ hiện bài có hình ảnh đính kèm</label>
                 </div>
 
+                <div th:if="${dateError}" style="margin-top: 15px; padding: 10px; background-color: #fee2e2; border: 1px solid #ef4444; border-radius: 4px; color: #b91c1c; font-weight: bold;">
+                    <span th:text="${dateError}"></span>
+                </div>
+
                 <div style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
                     <button type="submit" class="btn-primary" style="padding: 8px 20px;">Tìm kiếm & Lọc</button>
                     <a th:href="@{/}" class="btn-theme" style="padding: 8px 20px; text-decoration: none;">Xóa tất cả bộ lọc</a>
@@ -189,7 +193,7 @@
                         searchBy: document.querySelector('select[name="searchBy"]').value,
                         keyword: document.querySelector('input[name="keyword"]').value,
                         categoryId: document.querySelector('select[name="categoryId"]').value,
-                        tagId: document.querySelector('select[name="tagId"]').value, // Lưu Tag
+                        tagId: document.querySelector('select[name="tagId"]').value, 
                         authorId: document.querySelector('select[name="authorId"]').value,
                         startDate: document.querySelector('input[name="startDate"]').value,
                         endDate: document.querySelector('input[name="endDate"]').value,
@@ -212,7 +216,7 @@
                         document.querySelector('select[name="searchBy"]').value = data.searchBy || 'title';
                         document.querySelector('input[name="keyword"]').value = data.keyword || '';
                         document.querySelector('select[name="categoryId"]').value = data.categoryId || '';
-                        document.querySelector('select[name="tagId"]').value = data.tagId || ''; // Phục hồi Tag
+                        document.querySelector('select[name="tagId"]').value = data.tagId || ''; 
                         document.querySelector('select[name="authorId"]').value = data.authorId || '';
                         document.querySelector('input[name="startDate"]').value = data.startDate || '';
                         document.querySelector('input[name="endDate"]').value = data.endDate || '';

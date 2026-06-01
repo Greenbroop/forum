@@ -5,7 +5,7 @@ import com.iu.forum.model.Thread;
 import com.iu.forum.model.User;
 import com.iu.forum.repository.CategoryRepository;
 import com.iu.forum.repository.MessageRepository;
-import com.iu.forum.repository.TagRepository; // IMPORT TAG REPOSITORY
+import com.iu.forum.repository.TagRepository;
 import com.iu.forum.repository.ThreadRepository;
 import com.iu.forum.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,14 +45,14 @@ public class HomeController {
     private UserRepository userRepository;
 
     @Autowired
-    private TagRepository tagRepository; // BỔ SUNG
+    private TagRepository tagRepository;
 
     @GetMapping({ "/", "/index" })
     public String index(
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "authorId", required = false) Long authorId,
-            @RequestParam(value = "tagId", required = false) Long tagId, // BỔ SUNG HỨNG TAG ID
+            @RequestParam(value = "tagId", required = false) Long tagId, 
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "startDate", required = false) String startDateStr,
             @RequestParam(value = "endDate", required = false) String endDateStr,
@@ -73,6 +73,16 @@ public class HomeController {
             }
         } catch (Exception e) {}
 
+        // ==========================================
+        // 1. CROSS-FIELD VALIDATION (Kiểm tra chéo)
+        // ==========================================
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            model.addAttribute("dateError", "⚠️ Lỗi: 'Từ ngày' không được diễn ra sau 'Đến ngày'!");
+            // Vô hiệu hóa bộ lọc ngày để tránh lỗi Database
+            startDate = null; 
+            endDate = null;
+        }
+
         Sort sort;
         switch (sortParam) {
             case "oldest":    sort = Sort.by(Sort.Direction.ASC, "createdAt"); break;
@@ -86,7 +96,6 @@ public class HomeController {
         Pageable pageable = PageRequest.of(page - 1, size, sort);
         Page<Thread> threadPage;
         
-        // CẬP NHẬT: Thêm tagId vào điều kiện lọc
         if (categoryId != null || authorId != null || tagId != null || (status != null && !status.isEmpty()) || startDate != null || endDate != null || (hasImage != null && hasImage)) {
             threadPage = threadRepository.advancedFilter(categoryId, authorId, tagId, status, startDate, endDate, hasImage, pageable);
         } else if (keyword != null && !keyword.trim().isEmpty()) {
@@ -101,12 +110,12 @@ public class HomeController {
 
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("users", userRepository.findAll());
-        model.addAttribute("tags", tagRepository.findAll()); // TRUYỀN DANH SÁCH TAG LÊN GIAO DIỆN
+        model.addAttribute("tags", tagRepository.findAll()); 
         
         model.addAttribute("keyword", keyword); 
         model.addAttribute("selectedCategory", categoryId);
         model.addAttribute("selectedAuthor", authorId);
-        model.addAttribute("selectedTag", tagId); // ĐỂ GIAO DIỆN HIỂN THỊ ĐÚNG TAG ĐANG CHỌN
+        model.addAttribute("selectedTag", tagId); 
         model.addAttribute("selectedStatus", status);
         model.addAttribute("startDate", startDateStr);
         model.addAttribute("endDate", endDateStr);
@@ -117,9 +126,18 @@ public class HomeController {
     }
 
     @GetMapping("/thread/{id}")
-    public String threadDetail(@PathVariable Long id, Model model) {
+    public String threadDetail(@PathVariable Long id, 
+            @RequestParam(value = "error", required = false) String error, 
+            Model model) {
         Thread thread = threadRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy chủ đề với ID: " + id));
+
+        // Nếu có lỗi từ hàm post truyền sang (ví dụ file quá lớn, bài bị khóa), đẩy ra View để hiển thị
+        if (error != null) {
+            if (error.equals("ThreadIsClosed")) model.addAttribute("errorMessage", "Chủ đề này đã bị khóa, không thể bình luận!");
+            if (error.equals("FileTooLarge")) model.addAttribute("errorMessage", "Tệp đính kèm quá lớn. Vui lòng tải lên tệp dưới 5MB.");
+            if (error.equals("InvalidFileType")) model.addAttribute("errorMessage", "Định dạng tệp không hợp lệ. Chỉ chấp nhận ảnh hoặc tài liệu cơ bản.");
+        }
 
         model.addAttribute("thread", thread);
         model.addAttribute("messages", messageRepository.findByThread(thread));
@@ -135,6 +153,14 @@ public class HomeController {
         if (principal == null) return "redirect:/login";
 
         Thread thread = threadRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy chủ đề"));
+        
+        // ==========================================
+        // 2. BUSINESS RULE VALIDATION
+        // ==========================================
+        if ("CLOSED".equals(thread.getStatus())) {
+            return "redirect:/thread/" + id + "?error=ThreadIsClosed";
+        }
+
         User currentUser = userRepository.findByUsername(principal.getName()).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản"));
 
         Message newMessage = new Message();
@@ -143,12 +169,30 @@ public class HomeController {
         newMessage.setUser(currentUser);
         newMessage.setCreatedAt(LocalDateTime.now());
 
+        // ==========================================
+        // 3. FILE VALIDATION (Giới hạn dung lượng và đuôi mở rộng)
+        // ==========================================
         if (file != null && !file.isEmpty()) {
+            
+            // Giới hạn file 5MB (5 * 1024 * 1024)
+            if (file.getSize() > 5242880) {
+                return "redirect:/thread/" + id + "?error=FileTooLarge";
+            }
+            
+            // Chỉ cho phép ảnh và một số tài liệu phổ biến
+            String fileName = file.getOriginalFilename();
+            if (fileName != null) {
+                String ext = fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
+                if (!ext.matches("\\.(jpg|jpeg|png|gif|pdf|docx|zip)")) {
+                    return "redirect:/thread/" + id + "?error=InvalidFileType";
+                }
+            }
+
             try {
                 String uploadDir = System.getProperty("user.dir") + "/uploads/";
                 Path uploadPath = Paths.get(uploadDir);
                 if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath); 
-                String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+                String uniqueFileName = UUID.randomUUID().toString() + "_" + fileName;
                 Path filePath = uploadPath.resolve(uniqueFileName);
                 Files.copy(file.getInputStream(), filePath);
                 newMessage.setFileUrl("/uploads/" + uniqueFileName);
@@ -156,6 +200,7 @@ public class HomeController {
                 e.printStackTrace(); 
             }
         }
+        
         messageRepository.save(newMessage);
         return "redirect:/thread/" + id;
     }
