@@ -1,13 +1,13 @@
 package com.iu.forum.service;
 
 import com.iu.forum.model.Thread;
+import com.iu.forum.model.Message;
 import com.iu.forum.repository.ThreadRepository;
 import com.iu.forum.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.iu.forum.model.Message;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,29 +21,54 @@ public class ThreadService {
     @Autowired
     private MessageRepository messageRepository;
 
-    // Tự động chạy quét hệ thống định kỳ 
-    // Áp dụng tính năng tự động dọn dẹp các threads cũ 
-    @Scheduled(cron = "0 0 0 * * ?")
+    /**
+     * TIẾN TRÌNH 1: TỰ ĐỘNG ẨN (SOFT DELETE) CÁC BÀI VIẾT QUÁ 30 NGÀY
+     * cron = "0 0 0 * * ?" nghĩa là: Chạy vào đúng 00:00:00 (12h đêm) mỗi ngày.
+     */
+    @Scheduled(cron = "0 0 0 * * ?") 
     @Transactional
-    public void autoDeleteOldThreads(int daysConfiguredByAdmin) {
-        LocalDateTime thresholdDate = LocalDateTime.now().minusDays(daysConfiguredByAdmin);
+    public void autoDeleteOldThreads() {
+        // Đặt mốc thời gian: Lùi lại 30 ngày
+        LocalDateTime thresholdDate = LocalDateTime.now().minusDays(30);
         
-        // Tìm các bài thảo luận được tạo trước thời hạn quy định
+        // Tìm các bài hoạt động bình thường nhưng tạo từ trước mốc 30 ngày
         List<Thread> oldThreads = threadRepository.findByCreatedAtBeforeAndDeletedFalse(thresholdDate);
         
-        for (Thread thread : oldThreads) {
-            // SỬA LỖI 2: ÁP DỤNG SOFT DELETE (Xóa mềm)
-            thread.setDeleted(true);
-            threadRepository.save(thread); // Lưu trạng thái ẩn của Thread
-            
-            // Xóa mềm luôn cả các bình luận bên trong Thread đó
-            List<Message> messages = messageRepository.findByThread(thread);
-            for (Message msg : messages) {
-                msg.setDeleted(true);
+        if (!oldThreads.isEmpty()) {
+            for (Thread thread : oldThreads) {
+                thread.setDeleted(true); // Xóa mềm
+                
+                List<Message> messages = messageRepository.findByThread(thread);
+                for (Message msg : messages) {
+                    msg.setDeleted(true);
+                }
+                messageRepository.saveAll(messages);
             }
-            messageRepository.saveAll(messages);
+            threadRepository.saveAll(oldThreads);
+            System.out.println("[HỆ THỐNG - NỬA ĐÊM] Đã ẨN " + oldThreads.size() + " bài viết cũ hơn 30 ngày.");
         }
-        
-        System.out.println("[HỆ THỐNG] Đã chạy tiến trình ẩn tự động các bài viết cũ hơn " + daysConfiguredByAdmin + " ngày.");
+    }
+
+    /**
+     * TIẾN TRÌNH 2: TỰ ĐỘNG XÓA VĨNH VIỄN (HARD DELETE) SAU 1 TUẦN TRONG THÙNG RÁC
+     * cron = "0 0 0 * * ?" nghĩa là: Chạy vào đúng 00:00:00 (12h đêm) mỗi ngày.
+     */
+    @Scheduled(cron = "0 0 0 * * ?") 
+    @Transactional
+    public void autoDeleteOldSoftDeletedThreads() {
+        // Đặt mốc thời gian: Lùi lại 7 ngày (1 tuần)
+        LocalDateTime thresholdDate = LocalDateTime.now().minusDays(7);
+
+        // Tìm các bài rác (deleted = true) đã bị ẩn từ trước mốc 7 ngày
+        List<Thread> trashThreads = threadRepository.findByDeletedTrueAndCreatedAtBefore(thresholdDate);
+
+        if (!trashThreads.isEmpty()) {
+            threadRepository.deleteAll(trashThreads); // Xóa cứng
+            
+            System.out.println("\n==================================================");
+            System.out.println("⏰ [AUTO-CLEANUP] Quét dọn thùng rác nửa đêm: " + LocalDateTime.now());
+            System.out.println("✅ Đã xóa VĨNH VIỄN " + trashThreads.size() + " bài viết rác tồn đọng quá 1 tuần!");
+            System.out.println("==================================================\n");
+        }
     }
 }

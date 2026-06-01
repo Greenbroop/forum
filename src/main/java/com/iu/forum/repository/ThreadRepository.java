@@ -24,6 +24,9 @@ public interface ThreadRepository extends JpaRepository<Thread, Long> {
 
     Page<Thread> findDistinctByMessagesContentContainingIgnoreCaseAndDeletedFalse(String keyword, Pageable pageable);
 
+    // Tìm các bài viết ĐÃ bị xóa mềm (deleted = true) và tạo từ TRƯỚC một mốc thời gian
+    List<Thread> findByDeletedTrueAndCreatedAtBefore(LocalDateTime date);
+
     // BƯỚC QUAN TRỌNG: Dùng LEFT JOIN t.tags tag để móc nối dữ liệu qua bảng trung gian
     @Query("SELECT DISTINCT t FROM Thread t " +
            "LEFT JOIN t.tags tag " +
