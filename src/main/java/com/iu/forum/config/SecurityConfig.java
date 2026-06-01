@@ -33,7 +33,10 @@ public class SecurityConfig {
 
                 // Phân quyền truy cập dựa trên đường dẫn URL
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index", "/thread/**", "/login", "/register", "/css/**", "/js/**",
+                        // ==========================================
+                        // ĐÃ SỬA: Bổ sung "/verify" vào danh sách được phép truy cập tự do
+                        // ==========================================
+                        .requestMatchers("/", "/index", "/thread/**", "/login", "/register", "/verify", "/css/**", "/js/**",
                                 "/images/**", "/uploads/**")
                         .permitAll()
                         .requestMatchers("/mod/**").hasAnyRole("MODERATOR", "ADMIN")
@@ -62,8 +65,7 @@ public class SecurityConfig {
                 // TÍNH NĂNG MỚI: Ghi nhớ đăng nhập trong 30 ngày (Dùng Cookie)
                 .rememberMe(remember -> remember
                         .key("superSecretKeyForForum") // Mã bí mật để mã hóa cookie
-                        .rememberMeParameter("remember-me") // Trùng với thuộc tính name="" của thẻ input checkbox trên
-                                                            // HTML
+                        .rememberMeParameter("remember-me") // Trùng với thuộc tính name="" của thẻ input checkbox trên HTML
                         .tokenValiditySeconds(30 * 24 * 60 * 60) // Thời gian sống: 30 ngày
                 )
                 // Cấu hình Đăng xuất

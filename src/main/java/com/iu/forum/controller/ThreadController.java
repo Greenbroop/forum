@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Controller
@@ -56,26 +57,36 @@ public class ThreadController {
                                @RequestParam("categoryId") Long categoryId,
                                @RequestParam("content") String content,
                                @RequestParam(value = "tags", required = false) String tagString,
-                               // BỔ SUNG: Hứng file đính kèm từ giao diện
                                @RequestParam(value = "file", required = false) MultipartFile file) {
-        
+
+        // 1. CHẶN LỖI ĐĂNG NHẬP (Chưa đăng nhập thì đá về trang login)
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
         var creator = userRepository.findByUsername(principal.getName()).orElse(null);
         var category = categoryRepository.findById(categoryId).orElse(null);
 
         if (creator != null && category != null) {
-            
+
             Thread newThread = new Thread(title, creator);
             newThread.setCategory(category);
+            
+            // 2. VÁ LỖI DATABASE: Bắt buộc gán updatedAt để không bị lỗi NOT NULL
+            newThread.setUpdatedAt(LocalDateTime.now());
 
             // Xử lý Tags
             if (tagString != null && !tagString.trim().isEmpty()) {
                 String[] tagNames = tagString.split(",");
                 for (String tagName : tagNames) {
-                    String cleanTagName = tagName.trim(); 
+                    String cleanTagName = tagName.trim();
                     if (!cleanTagName.isEmpty()) {
                         Tag tag = tagRepository.findByName(cleanTagName)
                                 .orElseGet(() -> {
                                     Tag newTag = new Tag(cleanTagName);
+                                    // VÁ LỖI TƯƠNG TỰ CHO TAG: Gán thời gian trước khi lưu
+                                    newTag.setCreatedAt(LocalDateTime.now());
+                                    newTag.setUpdatedAt(LocalDateTime.now());
                                     return tagRepository.save(newTag);
                                 });
                         newThread.getTags().add(tag);
@@ -88,16 +99,14 @@ public class ThreadController {
             // Tạo nội dung (Message) đầu tiên
             Message firstMessage = new Message(content, creator, savedThread);
 
-            // ==========================================
-            // BỔ SUNG: XỬ LÝ LƯU FILE NẾU NGƯỜI DÙNG CÓ CHỌN FILE
-            // ==========================================
+            // Xử lý File Upload
             if (file != null && !file.isEmpty()) {
                 try {
                     String uploadDir = System.getProperty("user.dir") + "/uploads/";
                     Path uploadPath = Paths.get(uploadDir);
 
                     if (!Files.exists(uploadPath)) {
-                        Files.createDirectories(uploadPath); 
+                        Files.createDirectories(uploadPath);
                     }
 
                     String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
@@ -105,17 +114,15 @@ public class ThreadController {
 
                     Files.copy(file.getInputStream(), filePath);
 
-                    // Lưu URL vào Message đầu tiên
                     firstMessage.setFileUrl("/uploads/" + uniqueFileName);
 
                 } catch (IOException e) {
-                    e.printStackTrace(); 
+                    e.printStackTrace();
                 }
             }
 
-            // Lưu Message đầu tiên vào DB
             messageRepository.save(firstMessage);
-            
+
             return "redirect:/thread/" + savedThread.getId();
         }
 

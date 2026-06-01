@@ -1,8 +1,11 @@
 package com.iu.forum.model;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+
 
 @Entity
 @Table(name = "tags")
@@ -15,6 +18,12 @@ public class Tag {
     // Tên tag không được trùng lặp
     @Column(nullable = false, unique = true, length = 50)
     private String name;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     // KHAI BÁO NGƯỢC LẠI CHO QUAN HỆ NHIỀU-NHIỀU (mappedBy trỏ tới biến 'tags' trong Thread)
     @ManyToMany(mappedBy = "tags")
@@ -50,5 +59,20 @@ public class Tag {
 
     public void setThreads(Set<Thread> threads) {
         this.threads = threads;
+    }
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

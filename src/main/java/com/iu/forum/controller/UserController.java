@@ -62,6 +62,15 @@ public class UserController {
         user.setRole("ROLE_USER");
         user.setActive(false); // Chưa kích hoạt
 
+        // ==========================================
+        // VÁ LỖI DATABASE: Bơm dữ liệu cho các cột NOT NULL
+        // ==========================================
+        user.setFullName(user.getUsername()); // Lấy tạm username làm họ tên
+        user.setBio("Xin chào, tôi là thành viên mới của IU Forum!"); // Cung cấp tiểu sử mặc định
+        user.setCreatedAt(LocalDateTime.now());
+        // ==========================================
+
+        // Lưu xuống DB (Lúc này MySQL sẽ chấp nhận vì đã đủ các trường bắt buộc)
         userRepository.save(user);
 
         // Tạo token xác thực
@@ -76,24 +85,5 @@ public class UserController {
         System.out.println("========================================\n\n");
 
         return "redirect:/login?unverified";     
-    }
-    @GetMapping("/verify")
-    public String verifyAccount(@RequestParam("token") String token, Model model) {
-        VerificationToken verificationToken = tokenRepository.findByToken(token).orElse(null);
-        if (verificationToken == null) {
-            model.addAttribute("error", "Đường dẫn kích hoạt không hợp lệ!");
-            return "common/login";
-        }
-        
-        if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            model.addAttribute("error", "Đường dẫn kích hoạt đã hết hạn (quá 24h)!");
-            return "common/login";
-        }
-
-        User user = verificationToken.getUser();
-        user.setActive(true); // KÍCH HOẠT TÀI KHOẢN
-        userRepository.save(user);
-
-        return "redirect:/login?verified";
     }
 }

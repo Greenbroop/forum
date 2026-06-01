@@ -8,12 +8,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class ThreadService {
+
+    // Khai báo Logger chuẩn của Spring Boot
+    private static final Logger log = LoggerFactory.getLogger(ThreadService.class);
 
     @Autowired
     private ThreadRepository threadRepository;
@@ -45,7 +50,9 @@ public class ThreadService {
                 messageRepository.saveAll(messages);
             }
             threadRepository.saveAll(oldThreads);
-            System.out.println("[HỆ THỐNG - NỬA ĐÊM] Đã ẨN " + oldThreads.size() + " bài viết cũ hơn 30 ngày.");
+            
+            // Sử dụng Logger chuẩn thay vì System.out.println
+            log.info("Đã ẨN {} bài viết cũ hơn 30 ngày.", oldThreads.size());
         }
     }
 
@@ -65,10 +72,9 @@ public class ThreadService {
         if (!trashThreads.isEmpty()) {
             threadRepository.deleteAll(trashThreads); // Xóa cứng
             
-            System.out.println("\n==================================================");
-            System.out.println("⏰ [AUTO-CLEANUP] Quét dọn thùng rác nửa đêm: " + LocalDateTime.now());
-            System.out.println("✅ Đã xóa VĨNH VIỄN " + trashThreads.size() + " bài viết rác tồn đọng quá 1 tuần!");
-            System.out.println("==================================================\n");
+            // Ghi log chuyên nghiệp với SLF4J
+            log.info("⏰ Quét dọn thùng rác nửa đêm hoàn tất.");
+            log.info("✅ Đã xóa VĨNH VIỄN {} bài viết rác tồn đọng quá 1 tuần!", trashThreads.size());
         }
     }
 }
