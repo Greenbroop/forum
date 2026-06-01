@@ -7,17 +7,74 @@
 
 <body>
     <div th:fragment="header">
+        
+        <style>
+            /* Đảm bảo navbar dùng flexbox để dàn trang 2 bên */
+            .navbar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: relative; 
+            }
+            
+            /* Nút 3 gạch mặc định ẩn trên Desktop */
+            .hamburger-btn {
+                display: none;
+                background: none;
+                border: none;
+                font-size: 28px;
+                cursor: pointer;
+                color: #0284c7; /* Màu xanh đồng bộ theme */
+            }
+
+            /* Kích hoạt giao diện Mobile khi màn hình nhỏ hơn 768px */
+            @media screen and (max-width: 768px) {
+                .hamburger-btn {
+                    display: block; /* Hiện nút 3 gạch */
+                }
+                
+                .nav-links {
+                    display: none; /* Ẩn menu ngang */
+                    flex-direction: column;
+                    position: absolute;
+                    top: 100%; /* Đẩy xuống dưới navbar */
+                    left: 0;
+                    width: 100%;
+                    background-color: #ffffff;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    padding: 15px;
+                    z-index: 1000;
+                }
+                
+                /* Hiển thị menu dọc khi được gắn class 'active' bằng Javascript */
+                .nav-links.active {
+                    display: flex; 
+                }
+                
+                /* Cách đều các nút trên Mobile để dễ bấm (Touch-friendly) */
+                .nav-links .nav-item, 
+                .nav-links .user-zone, 
+                .nav-links .btn-theme {
+                    margin: 10px 0;
+                    width: 100%;
+                    text-align: left;
+                }
+            }
+        </style>
+
         <nav class="navbar">
             <div class="nav-brand">
                 <a th:href="@{/}" class="logo">IU Forum</a>
             </div>
-            <div class="nav-links">
+
+            <button class="hamburger-btn" onclick="toggleMenu()">☰</button>
+
+            <div class="nav-links" id="navMenu">
                 <a th:href="@{/}" class="nav-item">Trang chủ</a>
 
                 <a th:href="@{/admin/mods}" class="nav-item" sec:authorize="hasRole('ADMIN')">Quản lý Moderator</a>
 
-                <a th:href="@{/mod/dashboard}" class="nav-item" sec:authorize="hasAnyRole('MODERATOR', 'ADMIN')">Bàn làm
-                    việc Mod</a>
+                <a th:href="@{/mod/dashboard}" class="nav-item" sec:authorize="hasAnyRole('MODERATOR', 'ADMIN')">Bàn làm việc Mod</a>
 
                 <span class="user-zone" sec:authorize="isAuthenticated()">
                     Xin chào,
@@ -34,6 +91,13 @@
                 <button id="theme-toggle" class="btn-theme">🌓 Chế độ</button>
             </div>
         </nav>
+
+        <script>
+            function toggleMenu() {
+                const nav = document.getElementById('navMenu');
+                nav.classList.toggle('active');
+            }
+        </script>
     </div>
 </body>
 

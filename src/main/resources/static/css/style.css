@@ -412,3 +412,44 @@ button, .btn-primary, .btn-danger, .btn-theme, .btn-action {
     margin-bottom: 15px;
     border-radius: 5px;
 }
+
+/* =======================================================
+   RESPONSIVE DESIGN CHO MENU (Theo chuẩn barem Mobile 375x667) 
+   ======================================================= */
+.nav-menu {
+    display: flex;
+    align-items: center;
+}
+
+/* Kích hoạt khi màn hình thu nhỏ xuống kích thước Tablet/Mobile */
+@media screen and (max-width: 768px) {
+    .hamburger-btn {
+        display: block !important; /* Hiện nút 3 gạch */
+    }
+
+    .nav-menu {
+        display: none; /* Ẩn menu ngang mặc định */
+        flex-direction: column;
+        align-items: flex-start;
+        position: absolute;
+        top: 65px; /* Đẩy xuống dưới thanh header */
+        left: 0;
+        width: 100%;
+        background-color: white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 15px;
+        z-index: 1000;
+    }
+
+    /* Thêm khoảng cách cho các mục trong menu khi ở chế độ dọc */
+    .nav-menu a, .nav-menu span {
+        margin-bottom: 15px;
+        width: 100%;
+        display: block;
+    }
+
+    /* Class được gắn vào bằng Javascript khi bấm nút 3 gạch */
+    .nav-menu.active {
+        display: flex;
+    }
+}
