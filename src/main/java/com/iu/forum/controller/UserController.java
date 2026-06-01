@@ -1,20 +1,21 @@
 package com.iu.forum.controller;
 
 import com.iu.forum.model.User;
+import com.iu.forum.model.VerificationToken;
 import com.iu.forum.repository.UserRepository;
-import jakarta.validation.Valid; // Import thư viện Validation
+import com.iu.forum.repository.VerificationTokenRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult; // Cầu nối lấy lỗi
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.iu.forum.model.VerificationToken;
-import com.iu.forum.repository.VerificationTokenRepository;
 import java.time.LocalDateTime;
 
 @Controller
@@ -40,15 +41,13 @@ public class UserController {
         return "common/register";
     }
 
-    // TÍNH NĂNG MỚI: Dùng @Valid và BindingResult để hứng lỗi nhập liệu
     @PostMapping("/register")
+    @Transactional // Đảm bảo cả User và Token đều được lưu hoặc cùng bị hủy nếu lỗi
     public String registerUser(@Valid @ModelAttribute("user") User user, BindingResult bindingResult, Model model) {
-        // 1. Nếu vi phạm các @NotBlank, @Size đã cài ở model User
         if (bindingResult.hasErrors()) {
             return "common/register";
         }
 
-        // 2. Bắt lỗi trùng lặp dữ liệu (Database Constraints)
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             model.addAttribute("error", "Tên đăng nhập này đã tồn tại!");
             return "common/register";
@@ -58,32 +57,51 @@ public class UserController {
             return "common/register";
         }
 
+        // Cấu hình thông tin User
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole("ROLE_USER");
-        user.setActive(false); // Chưa kích hoạt
-
-        // ==========================================
-        // VÁ LỖI DATABASE: Bơm dữ liệu cho các cột NOT NULL
-        // ==========================================
-        user.setFullName(user.getUsername()); // Lấy tạm username làm họ tên
-        user.setBio("Xin chào, tôi là thành viên mới của IU Forum!"); // Cung cấp tiểu sử mặc định
+        user.setActive(false);
+        user.setFullName(user.getUsername());
+        user.setBio("Xin chào, tôi là thành viên mới của IU Forum!");
         user.setCreatedAt(LocalDateTime.now());
-        // ==========================================
+        user.setUpdatedAt(LocalDateTime.now());
 
-        // Lưu xuống DB (Lúc này MySQL sẽ chấp nhận vì đã đủ các trường bắt buộc)
         userRepository.save(user);
 
-        // Tạo token xác thực
+        // Tạo và lưu token xác thực
         VerificationToken verificationToken = new VerificationToken(user);
         tokenRepository.save(verificationToken);
 
-        // Mô phỏng gửi email
         System.out.println("\n\n====== HỆ THỐNG GỬI EMAIL TỰ ĐỘNG ======");
-        System.out.println("Gửi đến Email: " + user.getEmail());
-        System.out.println("Vui lòng click vào link sau để kích hoạt tài khoản:");
-        System.out.println("http://localhost:8080/verify?token=" + verificationToken.getToken());
+        System.out.println("Kích hoạt tại: http://localhost:8080/verify?token=" + verificationToken.getToken());
         System.out.println("========================================\n\n");
 
-        return "redirect:/login?unverified";     
+        return "redirect:/login?unverified";
+    }
+
+    @GetMapping("/verify")
+    @Transactional // Quan trọng: Phải có Transactional để lệnh update xuống DB có hiệu lực
+    public String verifyAccount(@RequestParam("token") String token, Model model) {
+        VerificationToken verificationToken = tokenRepository.findByToken(token).orElse(null);
+
+        if (verificationToken == null) {
+            model.addAttribute("error", "Đường dẫn kích hoạt không hợp lệ!");
+            return "common/login";
+        }
+
+        if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            model.addAttribute("error", "Đường dẫn kích hoạt đã hết hạn!");
+            return "common/login";
+        }
+
+        User user = verificationToken.getUser();
+        user.setActive(true);
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        // Dọn dẹp token sau khi sử dụng
+        tokenRepository.delete(verificationToken);
+
+        return "redirect:/login?verified";
     }
 }

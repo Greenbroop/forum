@@ -50,6 +50,9 @@ public class User {
     @Column(name = "is_active")
     private boolean active = true;
 
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt; // Phải là LocalDateTime
+
     public User() {
         this.createdAt = LocalDateTime.now();
     }
@@ -141,5 +144,8 @@ public class User {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
