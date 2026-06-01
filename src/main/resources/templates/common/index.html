@@ -110,6 +110,11 @@
                               th:text="${thread.category.name}">Chuyên mục
                         </span>
                         
+                        <span th:each="tag : ${thread.tags}" 
+                              style="background-color: #f3f4f6; color: #4b5563; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-right: 5px; border: 1px solid #d1d5db;" 
+                              th:text="'#' + ${tag.name}">#Tag
+                        </span>
+                        
                         Đăng bởi: <span th:text="${thread.creator.fullName}" style="font-weight: 500;">Tác giả</span>
                         • Ngày: <span th:text="${#temporals.format(thread.createdAt, 'dd/MM/yyyy HH:mm')}">Thời gian</span>
                     </p>

@@ -18,14 +18,30 @@
                 • Khởi tạo ngày: <span
                     th:text="${#temporals.format(thread.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</span>
             </p>
+
+            <div th:if="${not #lists.isEmpty(messages)}" class="thread-main-content" style="padding-top: 15px; margin-top: 15px; border-top: 1px solid #e5e7eb; font-size: 1.1em; line-height: 1.6; color: #374151;">
+                <p th:text="${messages[0].content}" style="white-space: pre-wrap;">Nội dung bài viết sẽ hiện ở đây...</p>
+                
+                <div th:if="${messages[0].fileUrl != null}" style="margin-top: 15px; margin-bottom: 10px;">
+                    <div th:if="${#strings.endsWith(messages[0].fileUrl, '.jpg') or #strings.endsWith(messages[0].fileUrl, '.png') or #strings.endsWith(messages[0].fileUrl, '.gif') or #strings.endsWith(messages[0].fileUrl, '.jpeg')}">
+                        <img th:src="${messages[0].fileUrl}" alt="Ảnh đính kèm" style="max-width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid #ddd; object-fit: contain;">
+                    </div>
+                    
+                    <div th:unless="${#strings.endsWith(messages[0].fileUrl, '.jpg') or #strings.endsWith(messages[0].fileUrl, '.png') or #strings.endsWith(messages[0].fileUrl, '.gif') or #strings.endsWith(messages[0].fileUrl, '.jpeg')}">
+                        <a th:href="${messages[0].fileUrl}" target="_blank" class="btn-theme" style="font-size: 0.85rem; padding: 6px 12px; text-decoration: none; display: inline-block;">
+                            📎 Tải tệp đính kèm
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="messages-section">
-            <h2>Các phản hồi (<span th:text="${#lists.size(messages)}">0</span>)</h2>
+            <h2>Các phản hồi (<span th:text="${#lists.size(messages) > 0 ? #lists.size(messages) - 1 : 0}">0</span>)</h2>
 
-            <div class="message-card" th:each="msg : ${messages}">
+            <div class="message-card" th:each="msg, stat : ${messages}" th:if="${!stat.first}">
                 <div class="message-body">
-                    <p th:text="${msg.content}">Nội dung bình luận mẫu nằm ở đây...</p>
+                    <p th:text="${msg.content}" style="white-space: pre-wrap;">Nội dung bình luận mẫu nằm ở đây...</p>
                     
                     <div th:if="${msg.fileUrl != null}" style="margin-top: 15px; margin-bottom: 10px;">
                         <div th:if="${#strings.endsWith(msg.fileUrl, '.jpg') or #strings.endsWith(msg.fileUrl, '.png') or #strings.endsWith(msg.fileUrl, '.gif') or #strings.endsWith(msg.fileUrl, '.jpeg')}">

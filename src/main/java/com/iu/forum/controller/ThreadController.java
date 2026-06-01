@@ -2,8 +2,10 @@ package com.iu.forum.controller;
 
 import com.iu.forum.model.Message;
 import com.iu.forum.model.Thread;
+import com.iu.forum.model.Tag;
 import com.iu.forum.repository.CategoryRepository;
 import com.iu.forum.repository.MessageRepository;
+import com.iu.forum.repository.TagRepository;
 import com.iu.forum.repository.ThreadRepository;
 import com.iu.forum.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +15,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile; // THÊM IMPORT NÀY
 
+// THÊM CÁC THƯ VIỆN ĐỂ XỬ LÝ LƯU FILE
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/thread")
@@ -32,36 +41,81 @@ public class ThreadController {
     @Autowired
     private MessageRepository messageRepository;
 
-    // 1. MỞ TRANG ĐĂNG BÀI VÀ TRUYỀN DANH SÁCH CHUYÊN MỤC
+    @Autowired
+    private TagRepository tagRepository;
+
     @GetMapping("/create")
     public String showCreateForm(Model model) {
-        // Lấy danh sách chuyên mục từ DB đưa lên giao diện
         model.addAttribute("categories", categoryRepository.findAll());
-        return "common/create-thread"; // Đảm bảo tên file HTML của bạn khớp ở đây
+        return "common/create-thread";
     }
 
-    // 2. XỬ LÝ KHI NGƯỜI DÙNG BẤM NÚT "ĐĂNG BÀI NGAY"
     @PostMapping("/create")
     public String createThread(Principal principal,
                                @RequestParam("title") String title,
                                @RequestParam("categoryId") Long categoryId,
-                               @RequestParam("content") String content) {
+                               @RequestParam("content") String content,
+                               @RequestParam(value = "tags", required = false) String tagString,
+                               // BỔ SUNG: Hứng file đính kèm từ giao diện
+                               @RequestParam(value = "file", required = false) MultipartFile file) {
         
-        // Bước 1: Lấy thông tin người đăng
         var creator = userRepository.findByUsername(principal.getName()).orElse(null);
         var category = categoryRepository.findById(categoryId).orElse(null);
 
         if (creator != null && category != null) {
-            // Bước 2: Tạo Chủ đề (Thread) mới
+            
             Thread newThread = new Thread(title, creator);
             newThread.setCategory(category);
-            Thread savedThread = threadRepository.save(newThread); // Lưu để lấy ID
 
-            // Bước 3: Tạo Bình luận đầu tiên (Message) chính là nội dung bài viết
+            // Xử lý Tags
+            if (tagString != null && !tagString.trim().isEmpty()) {
+                String[] tagNames = tagString.split(",");
+                for (String tagName : tagNames) {
+                    String cleanTagName = tagName.trim(); 
+                    if (!cleanTagName.isEmpty()) {
+                        Tag tag = tagRepository.findByName(cleanTagName)
+                                .orElseGet(() -> {
+                                    Tag newTag = new Tag(cleanTagName);
+                                    return tagRepository.save(newTag);
+                                });
+                        newThread.getTags().add(tag);
+                    }
+                }
+            }
+
+            Thread savedThread = threadRepository.save(newThread);
+
+            // Tạo nội dung (Message) đầu tiên
             Message firstMessage = new Message(content, creator, savedThread);
+
+            // ==========================================
+            // BỔ SUNG: XỬ LÝ LƯU FILE NẾU NGƯỜI DÙNG CÓ CHỌN FILE
+            // ==========================================
+            if (file != null && !file.isEmpty()) {
+                try {
+                    String uploadDir = System.getProperty("user.dir") + "/uploads/";
+                    Path uploadPath = Paths.get(uploadDir);
+
+                    if (!Files.exists(uploadPath)) {
+                        Files.createDirectories(uploadPath); 
+                    }
+
+                    String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+                    Path filePath = uploadPath.resolve(uniqueFileName);
+
+                    Files.copy(file.getInputStream(), filePath);
+
+                    // Lưu URL vào Message đầu tiên
+                    firstMessage.setFileUrl("/uploads/" + uniqueFileName);
+
+                } catch (IOException e) {
+                    e.printStackTrace(); 
+                }
+            }
+
+            // Lưu Message đầu tiên vào DB
             messageRepository.save(firstMessage);
             
-            // Bước 4: Chuyển hướng về trang bài viết vừa tạo (hoặc trang chủ)
             return "redirect:/thread/" + savedThread.getId();
         }
 

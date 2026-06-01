@@ -11,7 +11,8 @@
     <div class="container">
         <div class="content-box">
             <h1>Đăng chủ đề thảo luận mới</h1>
-            <form th:action="@{/thread/create}" method="post" style="max-width: 600px;">
+            
+            <form th:action="@{/thread/create}" method="post" enctype="multipart/form-data" style="max-width: 600px;">
                 
                 <div style="margin-bottom: 15px;">
                     <label style="font-weight: bold; display: block; margin-bottom: 5px;">
@@ -33,6 +34,15 @@
                     </select>
                 </div>
 
+                <div style="margin-bottom: 15px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">
+                        Thẻ (Tags) <span style="font-weight: normal; color: #6b7280; font-size: 0.9em;">(Phân cách bằng dấu phẩy)</span>
+                    </label>
+                    <input type="text" name="tags" class="form-control"
+                           style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc;"
+                           placeholder="Ví dụ: java, spring boot, bug, toán cao cấp">
+                </div>
+
                 <div style="margin-bottom: 20px;">
                     <label style="font-weight: bold; display: block; margin-bottom: 5px;">
                         Nội dung chi tiết <span style="color: red;">*</span>
@@ -40,6 +50,14 @@
                     <textarea name="content" class="form-control" rows="6" required
                               style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc;"
                               placeholder="Mô tả chi tiết vấn đề hoặc câu hỏi của bạn tại đây..."></textarea>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label for="file-upload" style="font-weight: bold; display: block; margin-bottom: 5px; cursor: pointer; color: #0284c7;">
+                        📎 Đính kèm hình ảnh, tài liệu (Tùy chọn)
+                    </label>
+                    <input type="file" id="file-upload" name="file" class="form-control" 
+                           style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                 </div>
 
                 <div style="display: flex; gap: 10px;">

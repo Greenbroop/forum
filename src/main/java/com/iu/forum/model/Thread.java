@@ -27,6 +27,14 @@ public class Thread {
     @OneToMany(mappedBy = "thread", cascade = CascadeType.ALL)
     private java.util.List<Message> messages;
 
+    @ManyToMany
+    @JoinTable(
+        name = "thread_tags", // Spring Boot sẽ tự động tạo bảng trung gian mang tên này
+        joinColumns = @JoinColumn(name = "thread_id"), // Khóa ngoại trỏ về bảng threads
+        inverseJoinColumns = @JoinColumn(name = "tag_id") // Khóa ngoại trỏ về bảng tags
+    )
+    private java.util.Set<Tag> tags = new java.util.HashSet<>();
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -146,5 +154,12 @@ public class Thread {
 
     public void setMessages(java.util.List<Message> messages) {
         this.messages = messages;
+    }
+    public java.util.Set<Tag> getTags() {
+        return tags;
+    }
+
+    public void setTags(java.util.Set<Tag> tags) {
+        this.tags = tags;
     }
 }
