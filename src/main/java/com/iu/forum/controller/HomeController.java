@@ -49,6 +49,8 @@ public class HomeController {
 
     @GetMapping({ "/", "/index" })
     public String index(
+            // TÍNH NĂNG MỚI: Hứng tham số searchBy từ menu thả xuống
+            @RequestParam(value = "searchBy", required = false, defaultValue = "title") String searchBy,
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "authorId", required = false) Long authorId,
@@ -127,6 +129,7 @@ public class HomeController {
                 || endDate != null
                 || (hasImage != null && hasImage)) {
 
+            // Giữ nguyên hàm lọc nâng cao cũ
             threadPage = threadRepository.advancedFilter(
                     categoryId,
                     authorId,
@@ -139,13 +142,22 @@ public class HomeController {
 
         } else if (keyword != null && !keyword.trim().isEmpty()) {
 
-            threadPage = threadRepository
-                    .findByTitleContainingIgnoreCaseAndDeletedFalse(
-                            keyword.trim(),
-                            pageable);
+            // Rẽ nhánh tìm kiếm dựa trên searchBy
+            String kw = keyword.trim();
+            if ("content".equals(searchBy)) {
+                // ĐÃ SỬA: Dùng hàm tìm kiếm xuyên qua danh sách Message
+                threadPage = threadRepository.findDistinctByMessagesContentContainingIgnoreCaseAndDeletedFalse(kw, pageable);
+                
+            } else if ("author".equals(searchBy)) {
+                // Tìm theo tên hoặc username tác giả
+                threadPage = threadRepository.findByCreator_FullNameContainingIgnoreCaseOrCreator_UsernameContainingIgnoreCaseAndDeletedFalse(kw, kw, pageable);
+                
+            } else {
+                // Mặc định tìm theo tiêu đề
+                threadPage = threadRepository.findByTitleContainingIgnoreCaseAndDeletedFalse(kw, pageable);
+            }
 
         } else {
-
             threadPage = threadRepository.findByDeletedFalse(pageable);
         }
 
@@ -157,6 +169,8 @@ public class HomeController {
         model.addAttribute("users", userRepository.findAll());
         model.addAttribute("tags", tagRepository.findAll());
 
+        // Đẩy searchBy ra View để giao diện HTML giữ đúng lựa chọn của người dùng
+        model.addAttribute("searchBy", searchBy);
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedCategory", categoryId);
         model.addAttribute("selectedAuthor", authorId);
@@ -182,10 +196,6 @@ public class HomeController {
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Không tìm thấy chủ đề với ID: " + id));
-
-        // Nếu có lỗi từ hàm post truyền sang
-        // (ví dụ file quá lớn, bài bị khóa),
-        // đẩy ra View để hiển thị
 
         if (error != null) {
 
@@ -230,9 +240,6 @@ public class HomeController {
                         new IllegalArgumentException(
                                 "Không tìm thấy chủ đề"));
 
-        // ==========================================
-        // 2. BUSINESS RULE VALIDATION
-        // ==========================================
         if ("CLOSED".equals(thread.getStatus())) {
             return "redirect:/thread/" + id + "?error=ThreadIsClosed";
         }
@@ -250,20 +257,11 @@ public class HomeController {
         newMessage.setUser(currentUser);
         newMessage.setCreatedAt(LocalDateTime.now());
 
-        // ==========================================
-        // 3. FILE VALIDATION
-        // (Giới hạn dung lượng và đuôi mở rộng)
-        // ==========================================
         if (file != null && !file.isEmpty()) {
-
-            // Giới hạn file 5MB
-            // (5 * 1024 * 1024)
 
             if (file.getSize() > 5242880) {
                 return "redirect:/thread/" + id + "?error=FileTooLarge";
             }
-
-            // Chỉ cho phép ảnh và một số tài liệu phổ biến
 
             String fileName = file.getOriginalFilename();
 
@@ -301,7 +299,6 @@ public class HomeController {
                         "/uploads/" + uniqueFileName);
 
             } catch (IOException e) {
-
                 e.printStackTrace();
             }
         }

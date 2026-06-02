@@ -64,7 +64,8 @@ a:hover {
 
 .container {
     max-width: 1000px;
-    margin: 80px auto 40px; /* Cách top 80px để không bị Navbar đè lên */
+    margin: 80px auto 40px;
+    /* Cách top 80px để không bị Navbar đè lên */
     padding: 0 20px;
 }
 
@@ -81,7 +82,8 @@ a:hover {
     align-items: center;
     padding: 12px 40px;
     background-color: var(--nav-bg);
-    backdrop-filter: blur(10px); /* Hiệu ứng kính mờ */
+    backdrop-filter: blur(10px);
+    /* Hiệu ứng kính mờ */
     border-bottom: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
     z-index: 1000;
@@ -115,7 +117,11 @@ a:hover {
 /* ==========================================================================
    4. CÁC THÀNH PHẦN NÚT BẤM (BUTTONS)
    ========================================================================== */
-button, .btn-primary, .btn-danger, .btn-theme, .btn-action {
+button,
+.btn-primary,
+.btn-danger,
+.btn-theme,
+.btn-action {
     display: inline-block;
     padding: 8px 16px;
     font-size: 0.95rem;
@@ -161,7 +167,9 @@ button, .btn-primary, .btn-danger, .btn-theme, .btn-action {
 /* ==========================================================================
    5. CẤU TRÚC CARD (THREADS & MESSAGES)
    ========================================================================== */
-.forum-intro, .content-box, .main-thread-box {
+.forum-intro,
+.content-box,
+.main-thread-box {
     background-color: var(--card-bg);
     padding: 25px 30px;
     border-radius: 12px;
@@ -171,7 +179,8 @@ button, .btn-primary, .btn-danger, .btn-theme, .btn-action {
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.thread-card, .message-card {
+.thread-card,
+.message-card {
     background-color: var(--card-bg);
     padding: 20px;
     border-radius: 10px;
@@ -194,7 +203,8 @@ button, .btn-primary, .btn-danger, .btn-theme, .btn-action {
     font-size: 1.2rem;
 }
 
-.thread-meta, .message-meta {
+.thread-meta,
+.message-meta {
     font-size: 0.85rem;
     color: var(--text-muted);
 }
@@ -231,7 +241,8 @@ button, .btn-primary, .btn-danger, .btn-theme, .btn-action {
     box-shadow: var(--shadow-sm);
 }
 
-.data-table th, .data-table td {
+.data-table th,
+.data-table td {
     padding: 15px;
     border-bottom: 1px solid var(--border-color);
     text-align: left;
@@ -394,14 +405,19 @@ button, .btn-primary, .btn-danger, .btn-theme, .btn-action {
 }
 
 /* Tùy chỉnh màu sắc cho link Đăng nhập và Đăng ký */
-.login-link, .register-link {
-    color: var(--primary-color) !important; /* Sử dụng màu xanh chủ đạo của hệ thống */
-    font-weight: 600; /* Làm chữ đậm hơn */
+.login-link,
+.register-link {
+    color: var(--primary-color) !important;
+    /* Sử dụng màu xanh chủ đạo của hệ thống */
+    font-weight: 600;
+    /* Làm chữ đậm hơn */
     transition: color 0.2s;
 }
 
-.login-link:hover, .register-link:hover {
-    color: var(--primary-hover) !important; /* Màu xanh đậm hơn khi di chuột qua */
+.login-link:hover,
+.register-link:hover {
+    color: var(--primary-hover) !important;
+    /* Màu xanh đậm hơn khi di chuột qua */
 }
 
 .alert-info {
@@ -424,25 +440,29 @@ button, .btn-primary, .btn-danger, .btn-theme, .btn-action {
 /* Kích hoạt khi màn hình thu nhỏ xuống kích thước Tablet/Mobile */
 @media screen and (max-width: 768px) {
     .hamburger-btn {
-        display: block !important; /* Hiện nút 3 gạch */
+        display: block !important;
+        /* Hiện nút 3 gạch */
     }
 
     .nav-menu {
-        display: none; /* Ẩn menu ngang mặc định */
+        display: none;
+        /* Ẩn menu ngang mặc định */
         flex-direction: column;
         align-items: flex-start;
         position: absolute;
-        top: 65px; /* Đẩy xuống dưới thanh header */
+        top: 65px;
+        /* Đẩy xuống dưới thanh header */
         left: 0;
         width: 100%;
         background-color: white;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         padding: 15px;
         z-index: 1000;
     }
 
     /* Thêm khoảng cách cho các mục trong menu khi ở chế độ dọc */
-    .nav-menu a, .nav-menu span {
+    .nav-menu a,
+    .nav-menu span {
         margin-bottom: 15px;
         width: 100%;
         display: block;
@@ -451,5 +471,151 @@ button, .btn-primary, .btn-danger, .btn-theme, .btn-action {
     /* Class được gắn vào bằng Javascript khi bấm nút 3 gạch */
     .nav-menu.active {
         display: flex;
+    }
+
+    /* --- BỐ CỤC BỘ LỌC CƠ BẢN (LIGHT MODE) --- */
+    .filter-container {
+        margin-bottom: 25px;
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .filter-title {
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: #374151;
+    }
+
+    /* Lưới chia cột thu gọn form */
+    .filter-top-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-select {
+        width: auto;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        outline: none;
+    }
+
+    .filter-input {
+        flex-grow: 1;
+        padding: 8px;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        padding-top: 15px;
+        border-top: 1px dashed #ccc;
+    }
+
+    .filter-label {
+        font-size: 0.85em;
+        font-weight: bold;
+    }
+
+    .sort-label {
+        color: #0284c7;
+    }
+
+    .sort-select {
+        padding: 8px;
+        border-color: #0284c7;
+        background-color: #f0f9ff;
+    }
+
+    .filter-checkbox-row {
+        display: flex;
+        align-items: center;
+        margin-top: 15px;
+    }
+
+    .large-checkbox {
+        margin-right: 8px;
+        transform: scale(1.2);
+    }
+
+    .checkbox-label {
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .filter-actions {
+        margin-top: 15px;
+        border-top: 1px solid #ddd;
+        padding-top: 15px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 8px 20px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-save-filter {
+        padding: 8px 20px;
+        background-color: #10b981;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn-load-filter {
+        padding: 8px 20px;
+        background-color: #f59e0b;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    /* --- CHUYỂN MÀU KHI BẬT DARK MODE --- */
+    body.dark-mode .filter-container {
+        background-color: #1e293b;
+        border: 1px solid #475569;
+        color: #f3f4f6;
+    }
+
+    body.dark-mode .filter-title {
+        color: #f3f4f6;
+    }
+
+    body.dark-mode .filter-grid {
+        border-top: 1px dashed #475569;
+    }
+
+    body.dark-mode .filter-actions {
+        border-top: 1px solid #475569;
+    }
+
+    body.dark-mode .filter-select,
+    body.dark-mode .filter-input,
+    body.dark-mode .filter-container input[type="date"],
+    body.dark-mode .filter-container select:not(.sort-select) {
+        background-color: #334155;
+        color: #f3f4f6;
+        border: 1px solid #64748b;
+    }
+
+    body.dark-mode .sort-select {
+        background-color: #1e3a8a;
+        color: #f3f4f6;
+        border-color: #3b82f6;
+    }
+
+    body.dark-mode .sort-label {
+        color: #60a5fa;
     }
 }

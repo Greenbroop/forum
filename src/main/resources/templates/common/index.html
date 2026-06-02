@@ -1,505 +1,276 @@
 <!DOCTYPE html>
-
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-
-
 <head>
-
     <meta charset="UTF-8">
-
     <title>IU Forum - Trang chủ</title>
-
     <link rel="stylesheet" th:href="@{/css/style.css}">
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 </head>
 
-
-
 <body>
-
     <div th:replace="~{fragments/header :: header}"></div>
-
-
-
     <div class="container">
-
         <div class="forum-intro">
-
             <h1>Chào mừng đến với IU Forum</h1>
-
             <p>Nơi trao đổi kiến thức và kinh nghiệm</p>
-
         </div>
-
-
-
         <div class="content-box" sec:authorize="isAuthenticated()" style="margin-bottom: 20px;">
-
             <a th:href="@{/thread/create}" class="btn-primary">+ Đăng chủ đề mới</a>
-
         </div>
-
-
-
         <div class="content-box">
-
             <h2>Chủ đề thảo luận</h2>
-
-
-
-            <form id="filterForm" th:action="@{/}" method="get"
-                style="margin-bottom: 25px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb;">
-
-
+            <form id="filterForm" th:action="@{/}" method="get" class="filter-container">
 
                 <input type="hidden" name="page" id="pageInput" th:value="${currentPage}">
 
+                <h4 class="filter-title">🔍 Tìm kiếm & Bộ lọc nâng cao</h4>
 
-
-                <h4 style="margin-top: 0; margin-bottom: 15px; color: #374151;">🔍 Tìm kiếm & Bộ lọc nâng cao</h4>
-
-
-
-                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-
-                    <select name="searchBy" class="form-control"
-                        style="width: auto; padding: 8px; border-radius: 4px; border: 1px solid #ccc; outline: none;">
-
+                <div class="filter-top-row">
+                    <select name="searchBy" class="form-control filter-select">
                         <option value="title" th:selected="${searchBy == 'title'}">Tìm trong Tiêu đề</option>
-
                         <option value="content" th:selected="${searchBy == 'content'}">Tìm trong Nội dung</option>
-
                         <option value="author" th:selected="${searchBy == 'author'}">Tìm theo Tên tác giả</option>
-
                     </select>
-
-                    <input type="text" name="keyword" th:value="${keyword}" class="form-control"
-                        style="flex-grow: 1; padding: 8px;" placeholder="Nhập từ khóa cần tìm...">
-
+                    <input type="text" name="keyword" th:value="${keyword}" class="form-control filter-input"
+                        placeholder="Nhập từ khóa cần tìm...">
                 </div>
 
-
-
-                <div
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; padding-top: 15px; border-top: 1px dashed #ccc;">
-
-
-
+                <div class="filter-grid">
                     <div>
-
-                        <label style="font-size: 0.85em; font-weight: bold;">Chuyên mục:</label>
-
-                        <select name="categoryId" class="form-control" style="width: 100%; padding: 8px;">
-
+                        <label class="filter-label">Chuyên mục:</label>
+                        <select name="categoryId" class="form-control">
                             <option value="">-- Tất cả chuyên mục --</option>
-
                             <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"
                                 th:selected="${cat.id == selectedCategory}"></option>
-
                         </select>
-
                     </div>
 
-
-
                     <div>
-
-                        <label style="font-size: 0.85em; font-weight: bold;">Thẻ (Tag):</label>
-
-                        <select name="tagId" class="form-control" style="width: 100%; padding: 8px;">
-
+                        <label class="filter-label">Thẻ (Tag):</label>
+                        <select name="tagId" class="form-control">
                             <option value="">-- Tất cả Thẻ --</option>
-
                             <option th:each="t : ${tags}" th:value="${t.id}" th:text="'#' + ${t.name}"
                                 th:selected="${t.id == selectedTag}"></option>
-
                         </select>
-
                     </div>
 
-
-
                     <div>
-
-                        <label style="font-size: 0.85em; font-weight: bold;">Người đăng:</label>
-
-                        <select name="authorId" class="form-control" style="width: 100%; padding: 8px;">
-
+                        <label class="filter-label">Người đăng:</label>
+                        <select name="authorId" class="form-control">
                             <option value="">-- Tất cả thành viên --</option>
-
                             <option th:each="u : ${users}" th:value="${u.id}"
                                 th:text="${u.fullName != null ? u.fullName : u.username}"
                                 th:selected="${u.id == selectedAuthor}"></option>
-
                         </select>
-
                     </div>
 
-
-
                     <div>
-
-                        <label style="font-size: 0.85em; font-weight: bold;">Từ ngày:</label>
-
-                        <input type="date" name="startDate" th:value="${startDate}" class="form-control"
-                            style="width: 100%; padding: 8px;">
-
+                        <label class="filter-label">Từ ngày:</label>
+                        <input type="date" name="startDate" th:value="${startDate}" class="form-control">
                     </div>
 
-
-
                     <div>
-
-                        <label style="font-size: 0.85em; font-weight: bold;">Đến ngày:</label>
-
-                        <input type="date" name="endDate" th:value="${endDate}" class="form-control"
-                            style="width: 100%; padding: 8px;">
-
+                        <label class="filter-label">Đến ngày:</label>
+                        <input type="date" name="endDate" th:value="${endDate}" class="form-control">
                     </div>
 
-
-
                     <div>
-
-                        <label style="font-size: 0.85em; font-weight: bold;">Trạng thái:</label><br>
-
-                        <input type="radio" name="status" value=""
-                            th:checked="${selectedStatus == null or selectedStatus == ''}"> Tất cả
-
-                        <input type="radio" name="status" value="OPEN" th:checked="${selectedStatus == 'OPEN'}"> Đang mở
-
-                        <input type="radio" name="status" value="CLOSED" th:checked="${selectedStatus == 'CLOSED'}"> Đã
-                        khóa
-
+                        <label class="filter-label">Trạng thái:</label>
+                        <div style="display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap;">
+                            <label style="white-space: nowrap; cursor: pointer;">
+                                <input type="radio" name="status" value="" th:checked="${selectedStatus == null or selectedStatus == ''}"> Tất cả
+                            </label>
+                            <label style="white-space: nowrap; cursor: pointer;">
+                                <input type="radio" name="status" value="OPEN" th:checked="${selectedStatus == 'OPEN'}"> Đang mở
+                            </label>
+                            <label style="white-space: nowrap; cursor: pointer;">
+                                <input type="radio" name="status" value="CLOSED" th:checked="${selectedStatus == 'CLOSED'}"> Đã khóa
+                            </label>
+                        </div>
                     </div>
 
-
-
                     <div>
-
-                        <label style="font-size: 0.85em; font-weight: bold; color: #0284c7;">Sắp xếp theo:</label>
-
-                        <select name="sort" class="form-control"
-                            style="width: 100%; padding: 8px; border-color: #0284c7; background-color: #f0f9ff;">
-
+                        <label class="filter-label sort-label">Sắp xếp theo:</label>
+                        <select name="sort" class="form-control sort-select">
                             <option value="newest" th:selected="${currentSort == 'newest'}">Mới nhất (Mặc định)</option>
-
                             <option value="oldest" th:selected="${currentSort == 'oldest'}">Cũ nhất</option>
-
                             <option value="viewsDesc" th:selected="${currentSort == 'viewsDesc'}">Xem nhiều nhất
                             </option>
-
                             <option value="titleAsc" th:selected="${currentSort == 'titleAsc'}">Tên bài viết (A-Z)
                             </option>
-
                             <option value="titleDesc" th:selected="${currentSort == 'titleDesc'}">Tên bài viết (Z-A)
                             </option>
-
                         </select>
-
                     </div>
-
                 </div>
 
-
-
-                <div style="display: flex; align-items: center; margin-top: 15px;">
-
-                    <input type="checkbox" name="hasImage" value="true" th:checked="${hasImage}"
-                        style="margin-right: 8px; transform: scale(1.2);">
-
-                    <label style="font-weight: bold; cursor: pointer;">Chỉ hiện bài có hình ảnh đính kèm</label>
-
+                <div class="filter-checkbox-row">
+                    <input type="checkbox" name="hasImage" value="true" th:checked="${hasImage}" class="large-checkbox">
+                    <label class="checkbox-label">Chỉ hiện bài có hình ảnh đính kèm</label>
                 </div>
 
-
-
-                <div th:if="${dateError}"
-                    style="margin-top: 15px; padding: 10px; background-color: #fee2e2; border: 1px solid #ef4444; border-radius: 4px; color: #b91c1c; font-weight: bold;">
-
+                <div th:if="${dateError}" class="date-error">
                     <span th:text="${dateError}"></span>
-
                 </div>
 
-
-
-                <div
-                    style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-
-                    <button type="submit" class="btn-primary" style="padding: 8px 20px;">Tìm kiếm & Lọc</button>
-
-                    <a th:href="@{/}" class="btn-theme" style="padding: 8px 20px; text-decoration: none;">Xóa tất cả bộ
-                        lọc</a>
-
-
-
-                    <button type="button" onclick="saveFilter()"
-                        style="padding: 8px 20px; background-color: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">💾
-                        Lưu bộ lọc này</button>
-
-                    <button type="button" onclick="loadFilter()" id="btnLoadFilter"
-                        style="display: none; padding: 8px 20px; background-color: #f59e0b; color: white; border: none; border-radius: 4px; cursor: pointer;">🔄
-                        Dùng bộ lọc đã lưu</button>
-
+                <div class="filter-actions">
+                    <button type="submit" class="btn-primary filter-btn">Tìm kiếm & Lọc</button>
+                    <a th:href="@{/}" class="btn-theme filter-btn">Xóa tất cả bộ lọc</a>
+                    <button type="button" onclick="saveFilter()" class="btn-save-filter">💾 Lưu bộ lọc này</button>
+                    <button type="button" onclick="loadFilter()" id="btnLoadFilter" style="display: none;"
+                        class="btn-load-filter">🔄 Dùng bộ lọc đã lưu</button>
                 </div>
-
             </form>
-
-
-
             <div th:if="${threads.totalElements == 0}" class="no-data">
-
                 <p>Không tìm thấy chủ đề nào phù hợp.</p>
-
             </div>
-
-
-
             <div class="thread-card" th:each="thread : ${threads.content}">
-
                 <div class="thread-info">
-
                     <h3>
-
                         <a th:href="@{/thread/{id}(id=${thread.id})}" th:text="${thread.title}">Tiêu đề mẫu</a>
-
                     </h3>
-
                     <p class="thread-meta">
-
                         <span th:if="${thread.category != null}"
                             style="background-color: #e0f2fe; color: #0284c7; padding: 3px 8px; border-radius: 12px; font-size: 0.85em; margin-right: 8px; font-weight: bold;"
                             th:text="${thread.category.name}">Chuyên mục
-
                         </span>
-
-
-
                         <span th:each="tag : ${thread.tags}"
                             style="background-color: #f3f4f6; color: #4b5563; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-right: 5px; border: 1px solid #d1d5db;"
                             th:text="'#' + ${tag.name}">#Tag
-
                         </span>
-
-
-
                         Đăng bởi: <span th:text="${thread.creator.fullName}" style="font-weight: 500;">Tác giả</span>
-
                         • Ngày: <span th:text="${#temporals.format(thread.createdAt, 'dd/MM/yyyy HH:mm')}">Thời
                             gian</span>
-
                     </p>
-
                 </div>
-
-
-
                 <div sec:authorize="hasAnyRole('MODERATOR', 'ADMIN')" class="action-zone">
-
                     <a th:href="@{/mod/delete-thread/{id}(id=${thread.id})}" class="btn-danger"
                         onclick="return confirm('Bạn có chắc chắn muốn xóa toàn bộ chủ đề này và các bình luận bên trong?')">Xóa
-
                         chủ đề</a>
-
                 </div>
-
             </div>
-
-
-
             <div th:if="${threads.totalElements > 0}" style="margin-top: 20px; font-style: italic; color: #555;">
-
                 Hiển thị kết quả từ <strong th:text="${(threads.number * threads.size) + 1}"></strong>
-
                 đến <strong
                     th:text="${threads.number == threads.totalPages - 1 ? threads.totalElements : (threads.number + 1) * threads.size}"></strong>
-
                 trong tổng số <strong th:text="${threads.totalElements}"></strong> bài viết.
-
             </div>
-
-
-
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px;">
-
-
-
                 <div>
-
                     <label>Hiển thị: </label>
-
                     <select name="size" form="filterForm"
                         onchange="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();"
                         style="padding: 5px; border-radius: 4px;">
-
                         <option value="10" th:selected="${pageSize == 10}">10 kết quả</option>
-
                         <option value="20" th:selected="${pageSize == 20}">20 kết quả</option>
-
                         <option value="50" th:selected="${pageSize == 50}">50 kết quả</option>
-
                     </select>
-
                 </div>
-
-
-
                 <div th:if="${threads.totalPages > 1}" style="display: flex; gap: 5px;">
-
                     <button type="button" th:disabled="${currentPage == 1}" th:onclick="|goToPage(${currentPage - 1})|"
                         class="btn-theme" style="padding: 5px 10px;">&laquo; Trước</button>
-
-
-
                     <span th:each="i : ${#numbers.sequence(1, threads.totalPages)}">
-
                         <button type="button" th:onclick="|goToPage(${i})|" th:text="${i}"
                             th:classappend="${currentPage == i ? 'btn-primary' : 'btn-theme'}"
                             style="padding: 5px 12px; font-weight: bold; cursor: pointer;"></button>
-
                     </span>
-
-
-
                     <button type="button" th:disabled="${currentPage == threads.totalPages}"
                         th:onclick="|goToPage(${currentPage + 1})|" class="btn-theme" style="padding: 5px 10px;">Sau
                         &raquo;</button>
-
                 </div>
-
             </div>
-
-
-
             <script>
-
                 // 1. Phân trang
-
                 function goToPage(pageNum) {
-
                     document.getElementById('pageInput').value = pageNum;
-
                     document.getElementById('filterForm').submit();
-
                 }
-
-
-
                 // 2. Hiện nút tải bộ lọc nếu có lưu trước đó
-
                 document.addEventListener("DOMContentLoaded", function () {
-
                     if (localStorage.getItem("forumSavedFilter")) {
-
                         document.getElementById("btnLoadFilter").style.display = "inline-block";
-
                     }
-
                 });
-
-
-
                 // 3. Hàm lưu bộ lọc
-
                 function saveFilter() {
-
                     const filterData = {
-
                         searchBy: document.querySelector('select[name="searchBy"]').value,
-
                         keyword: document.querySelector('input[name="keyword"]').value,
-
                         categoryId: document.querySelector('select[name="categoryId"]').value,
-
                         tagId: document.querySelector('select[name="tagId"]').value,
-
                         authorId: document.querySelector('select[name="authorId"]').value,
-
                         startDate: document.querySelector('input[name="startDate"]').value,
-
                         endDate: document.querySelector('input[name="endDate"]').value,
-
                         status: document.querySelector('input[name="status"]:checked').value,
-
                         sort: document.querySelector('select[name="sort"]').value,
-
                         hasImage: document.querySelector('input[name="hasImage"]').checked
-
                     };
-
-
-
                     localStorage.setItem("forumSavedFilter", JSON.stringify(filterData));
-
                     alert("✅ Đã lưu bộ lọc thành công!");
-
                     document.getElementById("btnLoadFilter").style.display = "inline-block";
-
                 }
-
-
-
                 // 4. Hàm tải bộ lọc
-
                 function loadFilter() {
-
                     const saved = localStorage.getItem("forumSavedFilter");
-
                     if (saved) {
-
                         const data = JSON.parse(saved);
-
-
-
                         document.querySelector('select[name="searchBy"]').value = data.searchBy || 'title';
-
                         document.querySelector('input[name="keyword"]').value = data.keyword || '';
-
                         document.querySelector('select[name="categoryId"]').value = data.categoryId || '';
-
                         document.querySelector('select[name="tagId"]').value = data.tagId || '';
-
                         document.querySelector('select[name="authorId"]').value = data.authorId || '';
-
                         document.querySelector('input[name="startDate"]').value = data.startDate || '';
-
                         document.querySelector('input[name="endDate"]').value = data.endDate || '';
-
-
-
                         let statusRadio = document.querySelector('input[name="status"][value="' + data.status + '"]');
-
                         if (statusRadio) statusRadio.checked = true;
-
-
-
                         document.querySelector('select[name="sort"]').value = data.sort || 'newest';
-
                         document.querySelector('input[name="hasImage"]').checked = data.hasImage || false;
-
-
-
                         document.getElementById("pageInput").value = 1;
-
                         document.getElementById("filterForm").submit();
-
                     }
-
                 }
-
             </script>
-
         </div>
-
     </div>
+    
+    <style>
+        /* Bố cục bộ lọc (Light Mode mặc định) */
+        .filter-container { margin-bottom: 25px; background-color: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; }
+        .filter-title { margin-top: 0; margin-bottom: 15px; color: #374151; }
+        .filter-top-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-select { width: auto; padding: 8px; border-radius: 4px; border: 1px solid #ccc; outline: none; }
+        .filter-input { flex-grow: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc;}
+        
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; padding-top: 15px; border-top: 1px dashed #ccc; }
+        .filter-label { font-size: 0.85em; font-weight: bold; }
+        .filter-grid select, .filter-grid input[type="date"] { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+        
+        .sort-label { color: #0284c7; }
+        .sort-select { border-color: #0284c7 !important; background-color: #f0f9ff !important; }
+        
+        .filter-checkbox-row { display: flex; align-items: center; margin-top: 15px; }
+        .large-checkbox { margin-right: 8px; transform: scale(1.2); }
+        .checkbox-label { font-weight: bold; cursor: pointer; }
+        
+        .filter-actions { margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .filter-btn { padding: 8px 20px; text-decoration: none; display: inline-block; border-radius: 4px; border: none; cursor: pointer; }
+        .btn-save-filter { padding: 8px 20px; background-color: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-load-filter { padding: 8px 20px; background-color: #f59e0b; color: white; border: none; border-radius: 4px; cursor: pointer; }
 
-
+        /* Dark Mode */
+        body.dark-mode .filter-container { background-color: #1e293b; border-color: #475569; color: #f3f4f6; }
+        body.dark-mode .filter-title { color: #f3f4f6; }
+        body.dark-mode .filter-grid, body.dark-mode .filter-actions { border-color: #475569; }
+        body.dark-mode .filter-select, body.dark-mode .filter-input, body.dark-mode .filter-grid select, body.dark-mode .filter-grid input[type="date"] { 
+            background-color: #334155; color: #f3f4f6; border-color: #64748b; 
+        }
+        body.dark-mode .sort-select { background-color:#475569 !important; color: #f3f4f6; border-color: #3b82f6 !important; }
+        body.dark-mode .sort-label { color: #60a5fa; }
+    </style>
 
     <script th:src="@{/js/theme.js}"></script>
-
 </body>
+
 </html>
