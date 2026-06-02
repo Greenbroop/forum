@@ -12,7 +12,7 @@
 
     <div class="container">
         <div class="breadcrumb" style="padding: 10px 20px; background-color: #f3f4f6; margin-bottom: 20px; border-radius: 5px; font-size: 14px;">
-            <a th:href="@{/}" style="color: #0284c7; text-decoration: none;">🏠 Trang chủ</a> 
+            <a th:href="@{/}" style="color: #0284c7; text-decoration: none;">Trang chủ</a> 
             <span th:if="${thread.category != null}" style="margin: 0 8px; color: #6b7280;">&raquo;</span>
             <a th:if="${thread.category != null}" th:href="@{/(categoryId=${thread.category.id})}" th:text="${thread.category.name}" style="color: #0284c7; text-decoration: none;">Tên chuyên mục</a>
             <span style="margin: 0 8px; color: #6b7280;">&raquo;</span>
@@ -43,7 +43,7 @@
                         th:unless="${#strings.endsWith(messages[0].fileUrl, '.jpg') or #strings.endsWith(messages[0].fileUrl, '.png') or #strings.endsWith(messages[0].fileUrl, '.gif') or #strings.endsWith(messages[0].fileUrl, '.jpeg')}">
                         <a th:href="${messages[0].fileUrl}" target="_blank" class="btn-theme"
                             style="font-size: 0.85rem; padding: 6px 12px; text-decoration: none; display: inline-block;">
-                            📎 Tải tệp đính kèm
+                            Tải tệp đính kèm
                         </a>
                     </div>
                 </div>
@@ -69,7 +69,7 @@
                             th:unless="${#strings.endsWith(msg.fileUrl, '.jpg') or #strings.endsWith(msg.fileUrl, '.png') or #strings.endsWith(msg.fileUrl, '.gif') or #strings.endsWith(msg.fileUrl, '.jpeg')}">
                             <a th:href="${msg.fileUrl}" target="_blank" class="btn-theme"
                                 style="font-size: 0.85rem; padding: 6px 12px; text-decoration: none; display: inline-block;">
-                                📎 Tải tệp đính kèm
+                                Tải tệp đính kèm
                             </a>
                         </div>
                     </div>
@@ -101,13 +101,13 @@
                         placeholder="Nhập nội dung phản hồi tại đây (ít nhất 10 ký tự)..." required></textarea>
                     
                     <p id="typingError" style="color: #ef4444; font-size: 13px; display: none; margin-top: 5px; font-weight: 500;">
-                        ⚠️ Bình luận phải dài ít nhất 10 ký tự.
+                         Bình luận phải dài ít nhất 10 ký tự.
                     </p>
                 </div>
 
                 <div class="form-group" style="margin-top: 10px; margin-bottom: 15px;">
                     <label for="file-upload" style="font-weight: normal; cursor: pointer; color: var(--primary-color);">
-                        📎 Đính kèm hình ảnh, tài liệu từ máy tính (Tối đa 5MB):
+                         Đính kèm hình ảnh, tài liệu từ máy tính (Tối đa 5MB):
                     </label>
                     <input type="file" id="file-upload" name="file" class="form-control" style="padding: 5px;">
                 </div>
@@ -132,7 +132,7 @@
                     if (this.files.length > 0) {
                         const fileSize = this.files[0].size / 1024 / 1024; // Đổi ra MB
                         if (fileSize > 5) {
-                            alert('⚠️ Lỗi (Client-side): Tệp đính kèm vượt quá 5MB. Vui lòng chọn tệp nhỏ hơn.');
+                            alert('Lỗi (Client-side): Tệp đính kèm vượt quá 5MB. Vui lòng chọn tệp nhỏ hơn.');
                             this.value = ''; // Reset (xóa) file vừa chọn ngay lập tức
                         }
                     }
@@ -167,7 +167,7 @@
             const form = document.querySelector('form');
             if (form && submitBtn) {
                 form.addEventListener('submit', function () {
-                    submitBtn.innerHTML = 'Đang xử lý... ⏳';
+                    submitBtn.innerHTML = 'Đang xử lý... ';
                     submitBtn.style.opacity = '0.7';
                     submitBtn.style.cursor = 'wait';
 
