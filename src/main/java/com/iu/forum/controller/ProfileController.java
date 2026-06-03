@@ -23,8 +23,10 @@ public class ProfileController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // Lấy thông tin cá nhân hiện tại để hiển thị lên form Profile
     @GetMapping
     public String viewProfile(Principal principal, Model model) {
+        // Principal chứa định danh của user đang đăng nhập (nhờ Spring Security cung cấp)
         User user = userRepository.findByUsername(principal.getName()).get();
         model.addAttribute("user", user);
         return "common/profile";
@@ -39,34 +41,41 @@ public class ProfileController {
             @RequestParam(value = "bio", required = false) String bio,
             @RequestParam(value = "avatar", required = false) String avatar) {
 
+        // Lấy User đang đăng nhập lên từ DB và tiến hành cập nhật
         userRepository.findByUsername(principal.getName()).ifPresent(user -> {
-            // Cập nhật tất cả các trường
+            // Cập nhật tất cả các trường dữ liệu mà user nhập vào form
             user.setEmail(email);
             user.setFullName(fullName);
             user.setBio(bio);
             user.setAvatar(avatar);
             
-            // Chốt hạ lưu xuống DB
+            // Chốt hạ lưu thông tin mới xuống DB
             userRepository.save(user);
         });
 
+        // Redirect kèm tham số success để HTML hiển thị hộp thoại thông báo thành công
         return "redirect:/profile?success";
     }
 
+    // XỬ LÝ ĐỔI MẬT KHẨU AN TOÀN
     @PostMapping("/change-password")
     public String changePassword(@RequestParam("oldPassword") String oldPassword,
                                  @RequestParam("newPassword") String newPassword,
                                  Principal principal) {
+                                     
         User user = userRepository.findByUsername(principal.getName()).get();
         
-        // Kiểm tra mật khẩu cũ có khớp trong DB không
+        // 1. KIỂM TRA BẢO MẬT: So sánh mật khẩu cũ người dùng nhập vào với mật khẩu đã mã hóa trong DB
+        // (Không thể dùng == vì mật khẩu DB đã bị băm (Hash), phải dùng passwordEncoder.matches)
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            // Nếu không khớp, đá về trang profile kèm báo lỗi
             return "redirect:/profile?error=wrongpass";
         }
 
-        // Đổi mật khẩu mới (phải mã hóa)
+        // 2. Nếu mật khẩu cũ đúng -> Mã hóa mật khẩu mới và lưu vào DB
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+        
         return "redirect:/profile?success";
     }
 }

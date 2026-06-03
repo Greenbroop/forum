@@ -2,6 +2,8 @@ package com.iu.forum.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -13,68 +15,73 @@ import org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // 1. Cầu nối bắt buộc để Thymeleaf hiểu được các thẻ phân quyền (Ẩn/hiện menu)
+    // 1. Hỗ trợ Thymeleaf nhận diện người dùng (Dùng cho các thẻ sec:authorize trên HTML)
     @Bean
     public SpringSecurityDialect springSecurityDialect() {
         return new SpringSecurityDialect();
     }
 
-    // Bean mã hóa mật khẩu để không lưu mật khẩu thô dưới dạng văn bản
+    // 2. Mã hóa mật khẩu an toàn bằng thuật toán băm (BCrypt) để bảo vệ Database
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // 3. Bộ lọc phân quyền trung tâm (Điều hướng và bảo mật toàn bộ request)
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Tắt CSRF để cho phép đăng xuất bằng thẻ <a> đơn giản trong môi trường Lab
+                // Tắt bảo vệ CSRF để cho phép làm nút Đăng xuất bằng thẻ <a> (GET request)
                 .csrf(csrf -> csrf.disable())
 
-                // Phân quyền truy cập dựa trên đường dẫn URL
+                // PHÂN QUYỀN TRUY CẬP (AUTHORIZATION)
                 .authorizeHttpRequests(auth -> auth
-                        // ==========================================
-                        // ĐÃ SỬA: Bổ sung "/verify" vào danh sách được phép truy cập tự do
-                        // ==========================================
-                        .requestMatchers("/", "/index", "/thread/**", "/login", "/register", "/verify", "/css/**", "/js/**",
-                                "/images/**", "/uploads/**")
-                        .permitAll()
+                        // Cấp quyền tự do cho trang chủ, đăng nhập, CSS/JS và xem file đính kèm (uploads)
+                        .requestMatchers("/", "/index", "/thread/**", "/login", "/register", "/verify", 
+                                         "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
+                        
+                        // Khu vực dành cho Điều phối viên và Quản trị viên
                         .requestMatchers("/mod/**").hasAnyRole("MODERATOR", "ADMIN")
+                        
+                        // Khu vực thiết lập hệ thống dành riêng cho Admin
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated())
-                // Cấu hình trang Đăng nhập
+                        
+                        // Mọi đường dẫn khác đều bắt buộc người dùng phải đăng nhập
+                        .anyRequest().authenticated()
+                )
+
+                // CẤU HÌNH ĐĂNG NHẬP (AUTHENTICATION)
                 .formLogin(form -> form
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/", true)
+                        .loginPage("/login") 
+                        .defaultSuccessUrl("/", true) 
+                        // Xử lý các ngoại lệ khi đăng nhập thất bại để báo lỗi ra UI
                         .failureHandler((request, response, exception) -> {
-                            String errorMessage = "bad_credentials";
-
-                            // Nếu lỗi do tài khoản bị disabled (active = false)
-                            if (exception instanceof org.springframework.security.authentication.DisabledException) {
-                                errorMessage = "disabled";
+                            String errorMessage = "bad_credentials"; // Mặc định sai tài khoản/mật khẩu
+                            if (exception instanceof DisabledException) {
+                                errorMessage = "disabled"; // Lỗi chưa xác thực Email
+                            } else if (exception instanceof LockedException) {
+                                errorMessage = "locked"; // Lỗi tài khoản bị khóa (Ban)
                             }
-                            // Nếu lỗi do tài khoản bị khóa (locked)
-                            else if (exception instanceof org.springframework.security.authentication.LockedException) {
-                                errorMessage = "locked";
-                            }
-
                             response.sendRedirect("/login?error=" + errorMessage);
                         })
-                        .permitAll())
-                        
-                // TÍNH NĂNG MỚI: Ghi nhớ đăng nhập trong 30 ngày (Dùng Cookie)
-                .rememberMe(remember -> remember
-                        .key("superSecretKeyForForum") // Mã bí mật để mã hóa cookie
-                        .rememberMeParameter("remember-me") // Trùng với thuộc tính name="" của thẻ input checkbox trên HTML
-                        .tokenValiditySeconds(30 * 24 * 60 * 60) // Thời gian sống: 30 ngày
+                        .permitAll()
                 )
-                // Cấu hình Đăng xuất
+
+                // TÍNH NĂNG GHI NHỚ ĐĂNG NHẬP (Lưu trạng thái trên trình duyệt 30 ngày)
+                .rememberMe(remember -> remember
+                        .key("superSecretKeyForForum") 
+                        .rememberMeParameter("remember-me") 
+                        .tokenValiditySeconds(30 * 24 * 60 * 60)
+                )
+
+                // CẤU HÌNH ĐĂNG XUẤT (Dọn dẹp sạch phiên làm việc)
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID", "remember-me") // Xóa luôn cookie remember-me khi đăng xuất
-                        .permitAll());
+                        .invalidateHttpSession(true) // Hủy session trên server
+                        .deleteCookies("JSESSIONID", "remember-me") // Xóa cookie trên trình duyệt
+                        .permitAll()
+                );
 
         return http.build();
     }

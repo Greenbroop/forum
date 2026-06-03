@@ -16,7 +16,7 @@ public class MessageService {
 
     // Lấy danh sách toàn bộ bình luận của một chủ đề thảo luận cụ thể
     public List<Message> getMessagesByThread(Thread thread) {
-        return messageRepository.findByThread(thread);
+        return messageRepository.findByThreadAndDeletedFalse(thread);
     }
 
     // Nghiệp vụ đăng bài viết/bình luận mới

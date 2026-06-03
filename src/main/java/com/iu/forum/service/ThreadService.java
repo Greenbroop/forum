@@ -43,7 +43,7 @@ public class ThreadService {
             for (Thread thread : oldThreads) {
                 thread.setDeleted(true); // Xóa mềm
                 
-                List<Message> messages = messageRepository.findByThread(thread);
+                List<Message> messages = messageRepository.findByThreadAndDeletedFalse(thread);
                 for (Message msg : messages) {
                     msg.setDeleted(true);
                 }
