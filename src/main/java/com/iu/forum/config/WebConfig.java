@@ -22,7 +22,7 @@ public class WebConfig implements WebMvcConfigurer {
         Path uploadPath = Paths.get(uploadDir);
         
         // Bước 2: Tạo quy tắc Ánh xạ (Mapping)
-        registry.addResourceHandler("/uploads/**") // Đường dẫn ảo trên URL web (VD: web.com/uploads/avatar.png)
-                .addResourceLocations("file:/" + uploadPath.toAbsolutePath().toString() + "/"); // Trỏ thẳng tới thư mục vật lý trên ổ cứng
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:uploads/");
     }
 }
