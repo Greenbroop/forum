@@ -117,9 +117,9 @@
                 <div class="filter-actions">
                     <button type="submit" class="btn-primary filter-btn">Tìm kiếm & Lọc</button>
                     <a th:href="@{/}" class="btn-theme filter-btn">Xóa tất cả bộ lọc</a>
-                    <button type="button" onclick="saveFilter()" class="btn-save-filter">💾 Lưu bộ lọc này</button>
+                    <button type="button" onclick="saveFilter()" class="btn-save-filter">Lưu bộ lọc này</button>
                     <button type="button" onclick="loadFilter()" id="btnLoadFilter" style="display: none;"
-                        class="btn-load-filter">🔄 Dùng bộ lọc đã lưu</button>
+                        class="btn-load-filter"> Dùng bộ lọc đã lưu</button>
                 </div>
             </form>
             <div th:if="${threads.totalElements == 0}" class="no-data">
@@ -208,7 +208,7 @@
                         hasImage: document.querySelector('input[name="hasImage"]').checked
                     };
                     localStorage.setItem("forumSavedFilter", JSON.stringify(filterData));
-                    alert("✅ Đã lưu bộ lọc thành công!");
+                    alert("Đã lưu bộ lọc thành công!");
                     document.getElementById("btnLoadFilter").style.display = "inline-block";
                 }
                 // 4. Hàm tải bộ lọc
