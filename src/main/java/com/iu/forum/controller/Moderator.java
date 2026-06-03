@@ -31,27 +31,35 @@ public class Moderator {
 
     @GetMapping("/dashboard")
     public String modDashboard(Model model) {
-        // 1. Lấy số liệu thống kê cơ bản từ CSDL
-        long totalThreads = threadRepository.count();
-        long totalMessages = messageRepository.count();
+        
+        // 1. SỬA LỖI ĐẾM SAI: Dùng hàm đếm loại trừ các bài đã xóa mềm
+        long totalThreads = threadRepository.countByDeletedFalse();
+        long totalRawMessages = messageRepository.countByDeletedFalse();
 
+        // 2. TỐI ƯU UX: Tính ra số lượng bình luận phản hồi thực tế
+        long actualReplies = totalRawMessages - totalThreads;
+        if (actualReplies < 0) {
+            actualReplies = 0;
+        }
+
+        // Truyền biến ra giao diện
         model.addAttribute("totalThreads", totalThreads);
-        model.addAttribute("totalMessages", totalMessages);
+        model.addAttribute("totalMessages", actualReplies);
 
-        // 2. Lấy 10 bài viết mới nhất để hiển thị lên Dashboard Mod
+        // Lấy 10 bài viết mới nhất để hiển thị lên Dashboard Mod
         model.addAttribute("recentThreads", threadRepository.findByDeletedFalse(
                 org.springframework.data.domain.PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")))
                 .getContent());
 
-        // 3. TÍNH NĂNG NÂNG CAO: Lấy dữ liệu cho Biểu đồ Chart.js
+        // Lấy dữ liệu cho Biểu đồ Chart.js
         List<Object[]> stats = categoryRepository.getCategoryStats();
         List<String> chartLabels = new ArrayList<>();
         List<Long> chartData = new ArrayList<>();
         
         if (stats != null) {
             for (Object[] row : stats) {
-                chartLabels.add((String) row[0]); // Tên chuyên mục
-                chartData.add((Long) row[1]);     // Số lượng bài viết
+                chartLabels.add((String) row[0]); 
+                chartData.add((Long) row[1]);     
             }
         }
         model.addAttribute("chartLabels", chartLabels);
@@ -59,7 +67,6 @@ public class Moderator {
 
         return "mod/dashboard";
     }
-
     // Tính năng xóa bình luận vi phạm
     @GetMapping("/delete-message/{id}")
     @Transactional

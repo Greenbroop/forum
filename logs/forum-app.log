@@ -2920,3 +2920,40 @@ Caused by: java.lang.Error: Unresolved compilation problem:
 2026-06-03T21:55:14.650+07:00  INFO 25308 --- [forum] [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
 2026-06-03T21:55:14.655+07:00  INFO 25308 --- [forum] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
 2026-06-03T21:55:14.656+07:00  INFO 25308 --- [forum] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-06-03T22:08:01.867+07:00  INFO 32160 --- [forum] [main] com.iu.forum.ForumApplication            : Starting ForumApplication using Java 17.0.14 with PID 32160 (D:\forum2\target\classes started by _Beanne in D:\forum2)
+2026-06-03T22:08:01.872+07:00  INFO 32160 --- [forum] [main] com.iu.forum.ForumApplication            : No active profile set, falling back to 1 default profile: "default"
+2026-06-03T22:08:02.892+07:00  INFO 32160 --- [forum] [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-06-03T22:08:02.982+07:00  INFO 32160 --- [forum] [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 79 ms. Found 6 JPA repository interfaces.
+2026-06-03T22:08:03.897+07:00  INFO 32160 --- [forum] [main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-06-03T22:08:03.916+07:00  INFO 32160 --- [forum] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-03T22:08:03.916+07:00  INFO 32160 --- [forum] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.21]
+2026-06-03T22:08:03.997+07:00  INFO 32160 --- [forum] [main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 2065 ms
+2026-06-03T22:08:04.354+07:00  INFO 32160 --- [forum] [main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-06-03T22:08:04.496+07:00  INFO 32160 --- [forum] [main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.12.Final
+2026-06-03T22:08:05.124+07:00  INFO 32160 --- [forum] [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-06-03T22:08:05.165+07:00  INFO 32160 --- [forum] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-06-03T22:08:05.438+07:00  INFO 32160 --- [forum] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@36638b59
+2026-06-03T22:08:05.439+07:00  INFO 32160 --- [forum] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-06-03T22:08:05.517+07:00  WARN 32160 --- [forum] [main] org.hibernate.orm.deprecation            : HHH90000025: MySQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-06-03T22:08:05.546+07:00  INFO 32160 --- [forum] [main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:mysql://localhost:3306/forum?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true]
+	Database driver: MySQL Connector/J
+	Database dialect: MySQLDialect
+	Database version: 8.0.46
+	Default catalog/schema: forum/undefined
+	Autocommit mode: undefined/unknown
+	Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-06-03T22:08:06.552+07:00  INFO 32160 --- [forum] [main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-06-03T22:08:06.559+07:00  INFO 32160 --- [forum] [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-06-03T22:08:06.638+07:00  INFO 32160 --- [forum] [main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-06-03T22:08:08.229+07:00  WARN 32160 --- [forum] [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-06-03T22:08:08.363+07:00  INFO 32160 --- [forum] [main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userService
+2026-06-03T22:08:09.210+07:00  INFO 32160 --- [forum] [main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-06-03T22:08:09.228+07:00  INFO 32160 --- [forum] [main] com.iu.forum.ForumApplication            : Started ForumApplication in 7.848 seconds (process running for 8.239)
+2026-06-03T22:08:12.150+07:00  INFO 32160 --- [forum] [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-06-03T22:08:12.151+07:00  INFO 32160 --- [forum] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-06-03T22:08:12.154+07:00  INFO 32160 --- [forum] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
