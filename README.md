@@ -113,20 +113,6 @@ Then run the application once to create tables, then revert to `none`.
 
 ---
 
-## 🌍 Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SPRING_DATASOURCE_URL` | `jdbc:mysql://localhost:3306/forum` | Database connection URL |
-| `SPRING_DATASOURCE_USERNAME` | `root` | Database username |
-| `SPRING_DATASOURCE_PASSWORD` | `Kazutozero09@` | Database password |
-| `SERVER_PORT` | `8080` | Server port |
-| `SPRING_JPA_HIBERNATE_DDL_AUTO` | `none` | Hibernate DDL strategy |
-| `SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE` | `10MB` | Maximum file upload size |
-| `LOGGING_FILE_NAME` | `logs/forum-app.log` | Log file location |
-
----
-
 ## 💻 How to Run Locally
 
 ### Option 1: Using Maven (Recommended)
